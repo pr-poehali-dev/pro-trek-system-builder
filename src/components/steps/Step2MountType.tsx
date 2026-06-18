@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProjectState, MountType } from '@/lib/types';
 import ProgressBar from '@/components/ProgressBar';
 
@@ -22,21 +22,18 @@ const VOLTAGES = [
 export default function Step2MountType({ state, next, back, totalSteps }: Props) {
   const [mount, setMount]     = useState<MountType | null>(state.mountType);
   const [voltage, setVoltage] = useState<number | null>(state.voltage);
+  const [ready, setReady]     = useState(false);
 
-  // При выборе напряжения — если тип уже выбран, сразу переходим
-  const handleVoltage = (v: number) => {
-    setVoltage(v);
-    if (mount) {
-      setTimeout(() => next({ mountType: mount, voltage: v }), 200);
-    }
-  };
+  // Как только оба поля заполнены — показываем кнопку
+  useEffect(() => {
+    setReady(!!(mount && voltage));
+  }, [mount, voltage]);
 
-  // При выборе типа — если напряжение уже выбрано, сразу переходим
-  const handleMount = (id: MountType) => {
-    setMount(id);
-    if (voltage) {
-      setTimeout(() => next({ mountType: id, voltage }), 200);
-    }
+  const handleVoltage = (v: number) => setVoltage(v);
+  const handleMount   = (id: MountType) => setMount(id);
+
+  const handleContinue = () => {
+    if (mount && voltage) next({ mountType: mount, voltage });
   };
 
   return (
@@ -106,17 +103,26 @@ export default function Step2MountType({ state, next, back, totalSteps }: Props)
           </div>
         </div>
 
-        {/* Подсказка */}
-        {mount && !voltage && (
-          <div className="text-xs text-[var(--text-muted)] text-center animate-fadein">
-            Выберите напряжение системы чтобы продолжить
+        {/* Подсказки + кнопка */}
+        <div className="flex items-center justify-between mt-4">
+          <div className="text-xs text-[var(--text-muted)]">
+            {!mount && '← Выберите тип установки'}
+            {mount && !voltage && '← Выберите напряжение системы'}
+            {ready && <span className="text-[var(--success)]">✓ Готово к продолжению</span>}
           </div>
-        )}
-        {!mount && (
-          <div className="text-xs text-[var(--text-muted)] text-center animate-fadein">
-            Выберите тип установки чтобы продолжить
-          </div>
-        )}
+
+          <button
+            onClick={handleContinue}
+            disabled={!ready}
+            className={`font-semibold px-8 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+              ready
+                ? 'neon-btn text-white'
+                : 'bg-[var(--border)] text-[var(--text-muted)] cursor-not-allowed opacity-50'
+            }`}
+          >
+            Продолжить →
+          </button>
+        </div>
       </div>
     </div>
   );
