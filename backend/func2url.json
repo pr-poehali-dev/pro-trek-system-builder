@@ -1,3 +1,6 @@
 {
-  "inspect_catalog": "https://functions.poehali.dev/66b33161-871f-4546-9c09-76be41c86e70"
+  "projects_api": "https://functions.poehali.dev/615d3407-9de2-40aa-b687-b75863edaf66",
+  "calculate_spec": "https://functions.poehali.dev/8fa020e3-d338-49d4-876a-0f0853cdfda3",
+  "parse_catalog": "https://functions.poehali.dev/5ecc5959-6a15-4d77-bee7-1b2089b154e7",
+  "get_catalog": "https://functions.poehali.dev/026ec31f-d990-4093-853c-a4e501035ffd"
 }

@@ -1,0 +1,1 @@
+{"tests": [{"name": "Calculate spec", "method": "POST", "path": "/", "body": {"constructions": [{"shape": "l_shaped", "dims": {"length": 3, "width": 2}}], "supplier_code": "arlight"}, "expectedStatus": 200, "expectedBody": {"spec": [], "summary": {}}, "bodyMatcher": "partial"}]}

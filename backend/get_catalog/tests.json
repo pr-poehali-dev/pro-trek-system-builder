@@ -1,0 +1,1 @@
+{"tests": [{"name": "Get catalog", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"products": [], "total": "number"}, "bodyMatcher": "partial"}]}

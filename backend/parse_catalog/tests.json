@@ -1,0 +1,1 @@
+{"tests": [{"name": "Parse catalog GET", "method": "GET", "path": "/?supplier_code=arlight&limit=5", "expectedStatus": 200, "expectedBody": {"saved": "number"}, "bodyMatcher": "partial"}]}

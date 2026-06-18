@@ -1,0 +1,1 @@
+{"tests": [{"name": "Get project by session", "method": "GET", "path": "/?session_id=test123", "expectedStatus": 200, "expectedBody": {"project": null}, "bodyMatcher": "partial"}]}
