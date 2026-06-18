@@ -9,25 +9,25 @@ const TYPES: { id: MountType; title: string; sub: string; img: string }[] = [
     id: 'surface',
     title: 'Накладные',
     sub: 'На поверхность',
-    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/fe638f0d-853a-462f-9c4d-0b3f2f2c470d.jpg',
+    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3d46a643-20c8-4d4c-9f87-57930c65369f.png',
   },
   {
     id: 'built_in',
     title: 'Для ГКЛ',
     sub: 'Встраиваемые',
-    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/eeb22d65-9e09-415e-b006-18c93c47f12a.jpg',
+    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3d46a643-20c8-4d4c-9f87-57930c65369f.png',
   },
   {
     id: 'harpoon',
     title: 'Для ПВХ',
     sub: 'Гарпунные',
-    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/780ab7ab-f9d0-46e6-a5be-6782a73dbbb1.jpg',
+    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3d46a643-20c8-4d4c-9f87-57930c65369f.png',
   },
   {
     id: 'other',
     title: 'Подвесные',
     sub: 'Другие варианты',
-    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/ea81197c-1c08-45d7-ab2b-1dfa04843e93.jpg',
+    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3d46a643-20c8-4d4c-9f87-57930c65369f.png',
   },
 ];
 

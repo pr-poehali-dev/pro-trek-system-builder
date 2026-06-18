@@ -3,30 +3,31 @@ import ProgressBar from '@/components/ProgressBar';
 
 interface Props { state: ProjectState; next: (p?: Partial<ProjectState>) => void; totalSteps: number; update: (p: Partial<ProjectState>) => void; back: () => void; reset: () => void; }
 
+// Фото из скриншота пользователя + реальные изображения
 const TRACK_TYPES: { id: MountType; title: string; sub: string; img: string }[] = [
   {
-    id: 'surface',
-    title: 'Для Ткани',
-    sub: 'Универсальные',
-    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/780ab7ab-f9d0-46e6-a5be-6782a73dbbb1.jpg',
+    id: 'other',
+    title: 'Накладные',
+    sub: 'На поверхность',
+    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3d46a643-20c8-4d4c-9f87-57930c65369f.png',
+  },
+  {
+    id: 'built_in',
+    title: 'Для ГКЛ',
+    sub: 'Встраиваемые',
+    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3d46a643-20c8-4d4c-9f87-57930c65369f.png',
   },
   {
     id: 'harpoon',
     title: 'Для ПВХ',
     sub: 'Гарпунные',
-    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/780ab7ab-f9d0-46e6-a5be-6782a73dbbb1.jpg',
+    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3d46a643-20c8-4d4c-9f87-57930c65369f.png',
   },
   {
-    id: 'built_in',
-    title: 'Для ГКЛ',
-    sub: 'Для гипсокартона',
-    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/fe638f0d-853a-462f-9c4d-0b3f2f2c470d.jpg',
-  },
-  {
-    id: 'other',
-    title: 'Накладные',
-    sub: 'На поверхность',
-    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/fe638f0d-853a-462f-9c4d-0b3f2f2c470d.jpg',
+    id: 'surface',
+    title: 'Подвесные',
+    sub: 'Другие варианты',
+    img: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3d46a643-20c8-4d4c-9f87-57930c65369f.png',
   },
 ];
 
@@ -45,7 +46,7 @@ const EXTRA_TYPES = [
   },
 ];
 
-export default function Step1Start({ next, totalSteps }: Props) {
+export default function Step1Start({ next, back, totalSteps }: Props) {
   const handleSelect = (id: string) => {
     if (id === 'help') return;
     const mount = (id === 'other2' ? 'other' : id) as MountType;

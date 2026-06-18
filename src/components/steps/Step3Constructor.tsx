@@ -8,13 +8,16 @@ interface Props { state: ProjectState; update: (p: Partial<ProjectState>) => voi
 
 const SHAPES: ShapeType[] = ['straight', 'l_shaped', 's_shaped', 'u_shaped', 'closed'];
 
+// Г-образная форма на потолке (реальное фото из проекта)
+const L_PHOTO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/95fc1943-4862-4c4d-bc8f-75a68ac6cf3c.png';
+
 const SHAPE_PHOTOS: Record<ShapeType, string> = {
   straight: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/eeb22d65-9e09-415e-b006-18c93c47f12a.jpg',
-  l_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/b99c5629-e34c-43f5-852d-f4f0c5391e7d.jpg',
-  s_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/b99c5629-e34c-43f5-852d-f4f0c5391e7d.jpg',
-  u_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/b99c5629-e34c-43f5-852d-f4f0c5391e7d.jpg',
+  l_shaped: L_PHOTO,
+  s_shaped: L_PHOTO,
+  u_shaped: L_PHOTO,
   closed:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/ea81197c-1c08-45d7-ab2b-1dfa04843e93.jpg',
-  custom:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/eeb22d65-9e09-415e-b006-18c93c47f12a.jpg',
+  custom:   L_PHOTO,
 };
 
 function AddShapeModal({ shape, onAdd, onClose }: {
