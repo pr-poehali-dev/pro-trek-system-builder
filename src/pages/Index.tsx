@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ProjectState, Quote } from '@/lib/types';
 import Step0Quote from '@/components/steps/Step0Quote';
 import Step1Start from '@/components/steps/Step1Start';
@@ -41,6 +42,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function Index() {
+  const navigate = useNavigate();
   const [state, setState] = useState<ProjectState>(initState);
   const [showAdmin, setShowAdmin] = useState(false);
 
@@ -142,6 +144,13 @@ export default function Index() {
               ))}
             </div>
           )}
+
+          <button
+            onClick={() => navigate('/quotes')}
+            className="hidden sm:flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] hover:text-[var(--neon)] transition-colors px-2.5 py-1 rounded border border-[var(--border)] hover:border-[var(--neon)]"
+          >
+            <Icon name="List" size={11} /> Мои счета
+          </button>
 
           <button
             onClick={() => setShowAdmin(!showAdmin)}

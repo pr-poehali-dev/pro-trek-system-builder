@@ -8,16 +8,14 @@ interface Props { state: ProjectState; update: (p: Partial<ProjectState>) => voi
 
 const SHAPES: ShapeType[] = ['straight', 'l_shaped', 's_shaped', 'u_shaped', 'closed'];
 
-// Г-образная форма на потолке (реальное фото из проекта)
-const L_PHOTO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/95fc1943-4862-4c4d-bc8f-75a68ac6cf3c.png';
-
+// Фото форм треков — единый стиль (3D рендер, белый потолок, вид сверху)
 const SHAPE_PHOTOS: Record<ShapeType, string> = {
-  straight: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/eeb22d65-9e09-415e-b006-18c93c47f12a.jpg',
-  l_shaped: L_PHOTO,
-  s_shaped: L_PHOTO,
-  u_shaped: L_PHOTO,
-  closed:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/ea81197c-1c08-45d7-ab2b-1dfa04843e93.jpg',
-  custom:   L_PHOTO,
+  straight: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/d5628365-782a-44cd-b380-7e04992ea4ec.jpg',
+  l_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/95fc1943-4862-4c4d-bc8f-75a68ac6cf3c.png',
+  s_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/264c3123-7eb0-44bc-9a5c-df340462c955.jpg',
+  u_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/9f3b9c87-6d06-4490-9ab6-efbf34da41f5.jpg',
+  closed:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/4a653f0a-8426-455b-8fd4-3b6fda7e3485.jpg',
+  custom:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/1c642422-3c66-423b-a0cf-625ff221cc18.png',
 };
 
 function AddShapeModal({ shape, onAdd, onClose }: {
