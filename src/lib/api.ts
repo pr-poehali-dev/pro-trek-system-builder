@@ -4,7 +4,13 @@ const URLS = {
   calculate_spec:  'https://functions.poehali.dev/8fa020e3-d338-49d4-876a-0f0853cdfda3',
   projects_api:    'https://functions.poehali.dev/615d3407-9de2-40aa-b687-b75863edaf66',
   quotes_api:      'https://functions.poehali.dev/bca79fbc-c80c-4dab-b61f-d09e2ab0d23c',
+  seed_demo:       'https://functions.poehali.dev/7349e236-2697-428f-bc85-04e593dcaa86',
 };
+
+export async function seedDemo() {
+  const r = await fetch(URLS.seed_demo);
+  return r.json();
+}
 
 export async function parseCatalog(supplierCode = 'arlight', limit = 0) {
   const url = `${URLS.parse_catalog}?supplier_code=${supplierCode}&limit=${limit}`;

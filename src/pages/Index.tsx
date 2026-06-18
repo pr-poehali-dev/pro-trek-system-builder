@@ -154,9 +154,15 @@ export default function Index() {
 
           <button
             onClick={() => setShowAdmin(!showAdmin)}
-            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--neon)] transition-colors px-2 py-1 rounded border border-[var(--border)] hover:border-[var(--neon)]"
+            className={`flex items-center gap-1.5 text-[10px] transition-colors px-2.5 py-1 rounded border hover:border-[var(--neon)] hover:text-[var(--neon)] ${
+              showAdmin
+                ? 'border-[var(--neon)] text-[var(--neon)]'
+                : 'border-[var(--border)] text-[var(--text-muted)]'
+            }`}
           >
-            ⚙
+            ⚙ <span className={`hidden sm:inline font-semibold ${state.supplierCode === 'ego' ? 'text-amber-400' : ''}`}>
+              {state.supplierCode === 'ego' ? 'EGO' : 'ARL'}
+            </span>
           </button>
 
           {state.step > 0 && (
@@ -170,7 +176,16 @@ export default function Index() {
         </div>
       </header>
 
-      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+      {showAdmin && (
+        <AdminPanel
+          onClose={() => setShowAdmin(false)}
+          currentSupplier={state.supplierCode}
+          onSupplierChange={(code) => {
+            update({ supplierCode: code });
+            setShowAdmin(false);
+          }}
+        />
+      )}
 
       {/* ─── Steps ──────────────────────────────────────────────────── */}
       <main className="flex-1 overflow-auto">
