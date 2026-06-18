@@ -98,8 +98,8 @@ export default function Step4Constructions({ state, update, next, back, totalSte
       <ProgressBar current={4} total={totalSteps} label="Конструкции" />
       <div className="max-w-4xl mx-auto px-6 py-4">
 
-        {/* Summary header */}
-        <div className="flex items-center justify-between mb-4 pro-card p-3">
+        {/* Summary header — тёмно-синяя шапка как на скриншоте */}
+        <div className="flex items-center justify-between mb-4 bg-[#0d1035] px-4 py-3 rounded-xl border border-[#1e2560]">
           <div className="text-sm text-[var(--text-secondary)]">
             <span className="text-[var(--text-primary)] font-semibold">Конструкций: {state.constructions.length}</span>
             <span className="mx-2 text-[var(--border)]">|</span>
@@ -153,8 +153,16 @@ export default function Step4Constructions({ state, update, next, back, totalSte
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-[var(--bg-secondary)] rounded-xl flex items-center justify-center flex-shrink-0">
-                    <ShapeSVG shape={c.shape} size={48} />
+                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative bg-[#c8cad4]">
+                    <img
+                      src="https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/ce45fd93-d91b-4e0a-add0-afef9a176e06.png"
+                      alt={SHAPE_META[c.shape].label}
+                      className="w-full h-full object-cover opacity-80"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ShapeSVG shape={c.shape} size={40} color="#1a1a2e" />
+                    </div>
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold text-[var(--text-primary)] text-sm">{SHAPE_META[c.shape].label}</div>
