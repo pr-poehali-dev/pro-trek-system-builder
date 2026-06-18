@@ -4,32 +4,22 @@ import ProgressBar from '@/components/ProgressBar';
 
 interface Props { state: ProjectState; next: (p?: Partial<ProjectState>) => void; back: () => void; totalSteps: number; }
 
-// Используем скриншот из проекта пользователя
 const CATALOG_IMG = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/0b607444-c50c-46fa-8b5a-3774ea8c555c.png';
 
 const TYPES: { id: MountType; title: string; sub: string; img: string }[] = [
-  { id: 'surface',  title: 'Накладные',  sub: 'На поверхность',   img: CATALOG_IMG },
-  { id: 'built_in', title: 'Для ГКЛ',   sub: 'Встраиваемые',     img: CATALOG_IMG },
-  { id: 'harpoon',  title: 'Для ПВХ',   sub: 'Гарпунные',        img: CATALOG_IMG },
-  { id: 'other',    title: 'Подвесные', sub: 'Другие варианты',   img: CATALOG_IMG },
-];
-
-const VOLTAGES = [
-  { v: 48,  label: '48В',  desc: 'Магнитные MAG-серии',   cls: 'badge-48v'  },
-  { v: 220, label: '220В', desc: 'Стандартные трековые',  cls: 'badge-220v' },
+  { id: 'surface',  title: 'Накладные',  sub: 'На поверхность',  img: CATALOG_IMG },
+  { id: 'built_in', title: 'Для ГКЛ',   sub: 'Встраиваемые',    img: CATALOG_IMG },
+  { id: 'harpoon',  title: 'Для ПВХ',   sub: 'Гарпунные',       img: CATALOG_IMG },
+  { id: 'other',    title: 'Подвесные', sub: 'Другие варианты',  img: CATALOG_IMG },
 ];
 
 export default function Step2MountType({ state, next, back, totalSteps }: Props) {
-  const [mount, setMount]     = useState<MountType | null>(state.mountType);
-  const [voltage, setVoltage] = useState<number | null>(state.voltage);
+  const [mount, setMount] = useState<MountType | null>(state.mountType);
 
-  const ready = !!(mount && voltage);
-
-  const handleVoltage = (v: number) => setVoltage(v);
-  const handleMount   = (id: MountType) => setMount(id);
-
-  const handleContinue = () => {
-    if (mount && voltage) next({ mountType: mount, voltage });
+  const handleSelect = (id: MountType) => {
+    setMount(id);
+    // Сразу переходим при выборе карточки — напряжение пока не фильтруем
+    next({ mountType: id, voltage: null });
   };
 
   return (
@@ -45,12 +35,11 @@ export default function Step2MountType({ state, next, back, totalSteps }: Props)
           <h2 className="text-base font-bold text-[var(--text-primary)]">Выберите тип установки</h2>
         </div>
 
-        {/* 4 карточки */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {TYPES.map(t => (
             <button
               key={t.id}
-              onClick={() => handleMount(t.id)}
+              onClick={() => handleSelect(t.id)}
               className={`pro-card overflow-hidden text-left group transition-all duration-200 ${
                 mount === t.id
                   ? 'selected shadow-[0_0_20px_var(--neon-glow)]'
@@ -78,47 +67,6 @@ export default function Step2MountType({ state, next, back, totalSteps }: Props)
           ))}
         </div>
 
-        {/* Напряжение */}
-        <div className="pro-card p-4 mb-4">
-          <div className="text-sm font-semibold text-[var(--text-primary)] mb-3">Напряжение системы</div>
-          <div className="flex gap-3 flex-wrap">
-            {VOLTAGES.map(({ v, label, desc, cls }) => (
-              <button
-                key={v}
-                onClick={() => handleVoltage(v)}
-                className={`flex items-center gap-3 px-5 py-2.5 rounded-xl border text-sm transition-all ${
-                  voltage === v
-                    ? 'border-[var(--neon)] bg-[rgba(61,90,254,0.1)]'
-                    : 'border-[var(--border)] hover:border-[var(--text-muted)]'
-                }`}
-              >
-                <span className={cls}>{label}</span>
-                <span className="text-[var(--text-muted)] text-xs">{desc}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Подсказки + кнопка */}
-        <div className="flex items-center justify-between mt-4">
-          <div className="text-xs text-[var(--text-muted)]">
-            {!mount && '← Выберите тип установки'}
-            {mount && !voltage && '← Выберите напряжение системы'}
-            {ready && <span className="text-[var(--success)]">✓ Готово к продолжению</span>}
-          </div>
-
-          <button
-            onClick={handleContinue}
-            disabled={!ready}
-            className={`font-semibold px-8 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-              ready
-                ? 'neon-btn text-white'
-                : 'bg-[var(--border)] text-[var(--text-muted)] cursor-not-allowed opacity-50'
-            }`}
-          >
-            Продолжить →
-          </button>
-        </div>
       </div>
     </div>
   );
