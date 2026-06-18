@@ -55,7 +55,7 @@ export default function Step7Electrical({ state, update, next, back, totalSteps 
 
   return (
     <div className="animate-fadein">
-      <ProgressBar current={7} total={totalSteps} label="Электрика" />
+      <ProgressBar current={8} total={totalSteps} label="Электрика" />
       <div className="max-w-4xl mx-auto px-6 py-6">
         <button onClick={back} className="text-[var(--neon)] text-sm mb-5 hover:opacity-80 flex items-center gap-1">← Назад</button>
 

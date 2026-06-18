@@ -54,7 +54,7 @@ export default function Step8Final({ state, back, reset, update, totalSteps }: P
 
   return (
     <div className="animate-fadein">
-      <ProgressBar current={8} total={totalSteps} label="Финальная сборка" />
+      <ProgressBar current={9} total={totalSteps} label="Финальная сборка" />
       <div className="max-w-5xl mx-auto px-6 py-6">
         <button onClick={back} className="text-[var(--neon)] text-sm mb-5 hover:opacity-80 flex items-center gap-1">← Назад</button>
 

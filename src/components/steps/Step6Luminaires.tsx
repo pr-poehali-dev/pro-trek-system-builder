@@ -39,7 +39,7 @@ export default function Step6Luminaires({ state, update, next, back, totalSteps 
 
   return (
     <div className="animate-fadein">
-      <ProgressBar current={6} total={totalSteps} label="Светильники" />
+      <ProgressBar current={7} total={totalSteps} label="Светильники" />
       <div className="max-w-5xl mx-auto px-6 py-6">
         <button onClick={back} className="text-[var(--neon)] text-sm mb-5 hover:opacity-80 flex items-center gap-1">← Назад</button>
 

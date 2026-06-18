@@ -6,14 +6,15 @@ import Step1Start from '@/components/steps/Step1Start';
 import Step2MountType from '@/components/steps/Step2MountType';
 import Step3Constructor from '@/components/steps/Step3Constructor';
 import Step4Constructions from '@/components/steps/Step4Constructions';
-import Step5Suppliers from '@/components/steps/Step5Suppliers';
-import Step6Luminaires from '@/components/steps/Step6Luminaires';
+import Step5SystemSelect from '@/components/steps/Step5SystemSelect';
+import Step6Accessories from '@/components/steps/Step6Accessories';
+import Step7Luminaires from '@/components/steps/Step6Luminaires';
 import Step7Electrical from '@/components/steps/Step7Electrical';
 import Step8Final from '@/components/steps/Step8Final';
 import AdminPanel from '@/components/AdminPanel';
 import Icon from '@/components/ui/icon';
 
-const TOTAL_STEPS = 8; // шаги 1–8, шаг 0 отдельный
+const TOTAL_STEPS = 9; // шаги 1–9, шаг 0 отдельный
 
 const initState: ProjectState = {
   step: 0,
@@ -194,10 +195,11 @@ export default function Index() {
         {state.step === 2 && <Step2MountType {...stepProps} />}
         {state.step === 3 && <Step3Constructor {...stepProps} />}
         {state.step === 4 && <Step4Constructions {...stepProps} />}
-        {state.step === 5 && <Step5Suppliers {...stepProps} />}
-        {state.step === 6 && <Step6Luminaires {...stepProps} />}
-        {state.step === 7 && <Step7Electrical {...stepProps} />}
-        {state.step === 8 && <Step8Final {...stepProps} />}
+        {state.step === 5 && <Step5SystemSelect {...stepProps} />}
+        {state.step === 6 && <Step6Accessories {...stepProps} />}
+        {state.step === 7 && <Step7Luminaires {...stepProps} />}
+        {state.step === 8 && <Step7Electrical {...stepProps} />}
+        {state.step === 9 && <Step8Final {...stepProps} />}
       </main>
     </div>
   );
