@@ -30,12 +30,12 @@ const SUPPLIERS_META: Record<string, { name: string; color: string; logo: string
   arlight: {
     name: 'Arlight',
     color: '#3d5afe',
-    logo: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/0b607444-c50c-46fa-8b5a-3774ea8c555c.png',
+    logo: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/67102236-293c-4925-b47f-e13686e93b7e.jpg',
   },
   ego: {
     name: 'EGO Lighting',
     color: '#f59e0b',
-    logo: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/0b607444-c50c-46fa-8b5a-3774ea8c555c.png',
+    logo: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/9e2f7080-ba25-407a-a4ab-2a89623e9876.jpg',
   },
 };
 
@@ -223,12 +223,22 @@ export default function Step5SystemSelect({ state, update, next, back, totalStep
                     className="w-28 flex-shrink-0 flex flex-col items-center justify-center p-4 border-r border-[var(--border)]"
                     style={{ backgroundColor: `${sys.supplierColor}10` }}
                   >
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center mb-2 text-white font-black text-lg"
-                      style={{ backgroundColor: sys.supplierColor, boxShadow: `0 0 12px ${sys.supplierColor}55` }}
-                    >
-                      {sys.supplierName.slice(0, 2).toUpperCase()}
-                    </div>
+                    {sys.supplierLogo ? (
+                      <img
+                        src={sys.supplierLogo}
+                        alt={sys.supplierName}
+                        className="w-14 h-14 rounded-xl object-cover mb-2"
+                        style={{ boxShadow: `0 0 12px ${sys.supplierColor}44` }}
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div
+                        className="w-14 h-14 rounded-xl flex items-center justify-center mb-2 text-white font-black text-lg"
+                        style={{ backgroundColor: sys.supplierColor, boxShadow: `0 0 12px ${sys.supplierColor}55` }}
+                      >
+                        {sys.supplierName.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
                     <span className="text-[10px] font-semibold text-[var(--text-secondary)] text-center leading-tight">
                       {sys.supplierName}
                     </span>
