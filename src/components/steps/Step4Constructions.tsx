@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ProjectState, Construction, ShapeType, ShapeDims } from '@/lib/types';
+import { ProjectState, Construction, ShapeDims } from '@/lib/types';
 import { SHAPE_META, calcConstruction, formatDims } from '@/lib/shapes';
 import { calculateSpec } from '@/lib/api';
 import ProgressBar from '@/components/ProgressBar';
@@ -48,12 +48,6 @@ function EditDimsModal({ construction, onSave, onClose }: {
   );
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  track: 'Треки', connector_straight: 'Соединители прямые',
-  connector_angle: 'Углы', end_cap: 'Заглушки',
-  mount: 'Подвесы', power_inlet: 'Токовводы',
-  driver: 'Блоки питания', controller: 'Контроллеры', head: 'Светильники',
-};
 
 export default function Step4Constructions({ state, update, next, back, totalSteps }: Props) {
   const [editing, setEditing] = useState<Construction | null>(null);

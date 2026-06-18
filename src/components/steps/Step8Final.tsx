@@ -4,7 +4,7 @@ import { updateQuote } from '@/lib/api';
 import ProgressBar from '@/components/ProgressBar';
 import Icon from '@/components/ui/icon';
 
-interface Props { state: ProjectState; back: () => void; reset: () => void; totalSteps: number; update: (p: Partial<ProjectState>) => void; next: () => void; }
+interface Props { state: ProjectState; back: () => void; reset: () => void; totalSteps: number; update: (p: Partial<ProjectState>) => void; }
 
 const SECTIONS: { label: string; cats: string[]; icon: string }[] = [ // v2
   { label: 'Треки и профили',    cats: ['track'],                                    icon: 'Minus' },

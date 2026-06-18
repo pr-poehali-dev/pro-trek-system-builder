@@ -1,7 +1,7 @@
 import { ProjectState, MountType } from '@/lib/types';
 import ProgressBar from '@/components/ProgressBar';
 
-interface Props { state: ProjectState; next: (p?: Partial<ProjectState>) => void; totalSteps: number; update: (p: Partial<ProjectState>) => void; back: () => void; reset: () => void; }
+interface Props { next: (p?: Partial<ProjectState>) => void; totalSteps: number; back: () => void; }
 
 // Фото из скриншота пользователя + реальные изображения
 const TRACK_TYPES: { id: MountType; title: string; sub: string; img: string }[] = [

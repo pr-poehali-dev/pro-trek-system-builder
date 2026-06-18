@@ -363,7 +363,7 @@ export default function AdminPanel({ onClose, onSupplierChange, currentSupplier 
               <div className="grid grid-cols-4 gap-2 mb-4">
                 {[
                   { label: 'Треки',     count: '0.5–3м, 48В/220В', icon: 'Minus'   },
-                  { label: 'Соедин.',   count: 'угол/прямой/гибкий',icon: 'Link'   },
+                  { label: 'Соедин.',   count: 'угол/прямой/гибкий', icon: 'Link'  },
                   { label: 'Светильн.', count: '8–20Вт, DALI',      icon: 'Zap'    },
                   { label: 'БП',        count: '25–120Вт, DALI',    icon: 'Battery'},
                 ].map(item => (

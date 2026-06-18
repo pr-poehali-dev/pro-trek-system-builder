@@ -248,7 +248,7 @@ export default function Quotes() {
                           onClick={() => setChangingStatus(
                             changingStatus?.quoteId === q.id
                               ? null
-                              : { quoteId: q.id!, open: true }
+                              : { quoteId: q.id ?? 0, open: true }
                           )}
                           className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded-lg hover:border-[var(--text-muted)] transition-all"
                         >
