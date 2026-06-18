@@ -3,6 +3,7 @@ const URLS = {
   get_catalog:     'https://functions.poehali.dev/026ec31f-d990-4093-853c-a4e501035ffd',
   calculate_spec:  'https://functions.poehali.dev/8fa020e3-d338-49d4-876a-0f0853cdfda3',
   projects_api:    'https://functions.poehali.dev/615d3407-9de2-40aa-b687-b75863edaf66',
+  quotes_api:      'https://functions.poehali.dev/bca79fbc-c80c-4dab-b61f-d09e2ab0d23c',
 };
 
 export async function parseCatalog(supplierCode = 'arlight', limit = 0) {
@@ -42,6 +43,41 @@ export async function saveProject(data: object) {
 
 export async function updateProject(data: object) {
   const r = await fetch(URLS.projects_api, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+// Quotes API
+export async function getStatuses() {
+  const r = await fetch(`${URLS.quotes_api}?statuses=1`);
+  return r.json();
+}
+
+export async function getQuotes(params: Record<string, string> = {}) {
+  const q = new URLSearchParams(params);
+  const r = await fetch(`${URLS.quotes_api}?${q}`);
+  return r.json();
+}
+
+export async function getQuote(id: number) {
+  const r = await fetch(`${URLS.quotes_api}?id=${id}`);
+  return r.json();
+}
+
+export async function createQuote(data: object) {
+  const r = await fetch(URLS.quotes_api, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+export async function updateQuote(data: object) {
+  const r = await fetch(URLS.quotes_api, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

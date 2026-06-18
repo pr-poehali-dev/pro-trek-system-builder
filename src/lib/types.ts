@@ -1,4 +1,57 @@
 export type TrackType = 'fabric' | 'pvc' | 'gkl' | 'surface' | 'other';
+
+export type QuoteStatus =
+  | 'draft' | 'new' | 'in_progress' | 'sent'
+  | 'approved' | 'ordered' | 'completed' | 'cancelled';
+
+export interface QuoteStatus_ {
+  code: QuoteStatus;
+  label: string;
+  color: string;
+  sort_order: number;
+  is_terminal: boolean;
+}
+
+export interface Quote {
+  id?: number;
+  number?: string;
+  status: QuoteStatus;
+  session_id?: string;
+  // Заказчик
+  client_name: string;
+  client_phone: string;
+  client_email?: string;
+  client_company?: string;
+  client_address?: string;
+  // Объект
+  object_name?: string;
+  object_address?: string;
+  room_type?: string;
+  // Менеджер
+  manager_name?: string;
+  manager_phone?: string;
+  // Финансы
+  total_amount?: number;
+  discount_pct?: number;
+  tax_pct?: number;
+  notes?: string;
+  valid_until?: string;
+  // Мета
+  created_at?: string;
+  updated_at?: string;
+  status_label?: string;
+  status_color?: string;
+  history?: QuoteHistoryItem[];
+}
+
+export interface QuoteHistoryItem {
+  status: string;
+  comment: string;
+  changed_at: string;
+  changed_by: string;
+  status_label: string;
+  status_color: string;
+}
 export type MountType = 'surface' | 'built_in' | 'harpoon' | 'other';
 export type ShapeType = 'straight' | 'l_shaped' | 's_shaped' | 'u_shaped' | 'closed' | 'custom';
 
@@ -71,6 +124,7 @@ export interface Product {
 
 export interface ProjectState {
   step: number;
+  quote: Quote | null;          // данные заказчика (шаг 0)
   trackType: TrackType | null;
   mountType: MountType | null;
   voltage: number | null;

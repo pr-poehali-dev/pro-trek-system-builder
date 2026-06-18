@@ -1,5 +1,6 @@
-import React from 'react';
-import { ProjectState, SpecItem } from '@/lib/types';
+import React, { useEffect } from 'react';
+import { ProjectState, SpecItem, Quote } from '@/lib/types';
+import { updateQuote } from '@/lib/api';
 import ProgressBar from '@/components/ProgressBar';
 import Icon from '@/components/ui/icon';
 
@@ -13,7 +14,7 @@ const SECTIONS: { label: string; cats: string[]; icon: string }[] = [ // v2
   { label: 'Светильники',        cats: ['head'],                                      icon: 'Lightbulb' },
 ];
 
-export default function Step8Final({ state, back, reset, totalSteps }: Props) {
+export default function Step8Final({ state, back, reset, update, totalSteps }: Props) {
   const s = state.summary;
   const totalPower = state.selectedLuminaires.reduce((sum, l) => sum + Number(l.product.params?.power_w ?? 0) * l.qty, 0);
 
@@ -41,6 +42,15 @@ export default function Step8Final({ state, back, reset, totalSteps }: Props) {
   }, 0);
 
   let rowNum = 0;
+
+  // Автоматически сохраняем итоговую сумму в счёт при открытии финального экрана
+  useEffect(() => {
+    const q = state.quote as Quote | null;
+    if (q?.id && grandTotal > 0) {
+      updateQuote({ id: q.id, total_amount: Math.round(grandTotal), status: 'in_progress' });
+      update({ quote: { ...q, total_amount: Math.round(grandTotal), status: 'in_progress' } });
+    }
+  }, []);
 
   return (
     <div className="animate-fadein">

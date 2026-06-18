@@ -57,6 +57,9 @@ export default function Step1Start({ next, totalSteps }: Props) {
       <ProgressBar current={1} total={totalSteps} label="Тип трека" />
 
       <div className="max-w-5xl mx-auto px-6 py-6">
+        <button onClick={back} className="text-[var(--neon)] text-sm mb-5 hover:opacity-80 flex items-center gap-1 transition-opacity">
+          ← К данным заказчика
+        </button>
         <div className="pro-card p-4 mb-6">
           <h2 className="text-base font-bold text-[var(--text-primary)]">Выберите Тип трека</h2>
         </div>

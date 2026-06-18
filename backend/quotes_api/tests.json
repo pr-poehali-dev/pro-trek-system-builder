@@ -1,0 +1,4 @@
+{"tests": [
+  {"name": "Get statuses", "method": "GET", "path": "/?statuses=1", "expectedStatus": 200, "expectedBody": {"statuses": []}, "bodyMatcher": "partial"},
+  {"name": "Get quotes list", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"quotes": []}, "bodyMatcher": "partial"}
+]}
