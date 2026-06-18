@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ProjectState, MountType } from '@/lib/types';
 import ProgressBar from '@/components/ProgressBar';
 
@@ -22,12 +22,8 @@ const VOLTAGES = [
 export default function Step2MountType({ state, next, back, totalSteps }: Props) {
   const [mount, setMount]     = useState<MountType | null>(state.mountType);
   const [voltage, setVoltage] = useState<number | null>(state.voltage);
-  const [ready, setReady]     = useState(false);
 
-  // Как только оба поля заполнены — показываем кнопку
-  useEffect(() => {
-    setReady(!!(mount && voltage));
-  }, [mount, voltage]);
+  const ready = !!(mount && voltage);
 
   const handleVoltage = (v: number) => setVoltage(v);
   const handleMount   = (id: MountType) => setMount(id);
