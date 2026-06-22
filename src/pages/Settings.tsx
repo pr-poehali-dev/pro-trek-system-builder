@@ -377,7 +377,7 @@ function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesI
     <div className="space-y-3">
       {/* Поставщики */}
       <div className="flex flex-wrap gap-2 items-center">
-        {catalog.map(sup => (
+        {catalog.filter(sup => sup.code !== 'ego').map(sup => (
           <div key={sup.id} className="flex items-center gap-0">
             <button
               onClick={() => { setSelectedSup(sup.id); setSelectedSeries(null); setSelectedCat(null); }}
