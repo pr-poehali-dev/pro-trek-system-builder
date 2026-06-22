@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "GET images for step1",
+      "method": "GET",
+      "path": "/?key=step1",
+      "expectedStatus": 200,
+      "expectedBody": {"images": {}},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

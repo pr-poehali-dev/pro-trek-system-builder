@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS card_images (
+  key TEXT NOT NULL,
+  id TEXT NOT NULL,
+  url TEXT NOT NULL,
+  updated_at TIMESTAMP DEFAULT NOW(),
+  PRIMARY KEY (key, id)
+);
