@@ -43,10 +43,6 @@ export default function Step1Start({ next, back, totalSteps }: Props) {
       <ProgressBar current={1} total={totalSteps} label="Категория" />
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <button onClick={back} className="text-[var(--neon)] text-sm mb-8 hover:opacity-80 flex items-center gap-1.5 transition-opacity">
-          <Icon name="ArrowLeft" size={14} /> К данным заказчика
-        </button>
-
         <div className="mb-8">
           <h2 className="text-2xl font-black text-[var(--text-primary)]">Выберите категорию</h2>
           <p className="text-sm text-[var(--text-muted)] mt-1.5">Что будем подбирать?</p>

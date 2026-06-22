@@ -14,10 +14,10 @@ import Step8Final from '@/components/steps/Step8Final';
 import AdminPanel from '@/components/AdminPanel';
 import Icon from '@/components/ui/icon';
 
-const TOTAL_STEPS = 9; // шаги 1–9, шаг 0 отдельный
+const TOTAL_STEPS = 9;
 
 const initState: ProjectState = {
-  step: 0,
+  step: 1,
   quote: null,
   trackType: null,
   mountType: null,
@@ -46,6 +46,7 @@ export default function Index() {
   const navigate = useNavigate();
   const [state, setState] = useState<ProjectState>(initState);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showQuote, setShowQuote] = useState(false);
 
   const update = useCallback((patch: Partial<ProjectState>) => {
     setState(s => ({ ...s, ...patch }));
@@ -56,7 +57,7 @@ export default function Index() {
   }, []);
 
   const back = useCallback(() => {
-    setState(s => ({ ...s, step: Math.max(s.step - 1, 0) }));
+    setState(s => ({ ...s, step: Math.max(s.step - 1, 1) }));
   }, []);
 
   const reset = useCallback(() => setState(initState), []);
@@ -126,7 +127,7 @@ export default function Index() {
 
         {/* Правая часть */}
         <div className="flex items-center gap-2">
-          {/* Прогресс точки (шаги 1–8) */}
+          {/* Прогресс точки */}
           {visibleStep >= 1 && (
             <div className="hidden sm:flex gap-1 items-center">
               {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
@@ -145,6 +146,22 @@ export default function Index() {
               ))}
             </div>
           )}
+
+          {/* Данные заказа */}
+          <button
+            onClick={() => setShowQuote(true)}
+            className={`flex items-center gap-1.5 text-[10px] transition-all px-2.5 py-1.5 rounded-lg border ${
+              quote
+                ? 'border-[var(--neon)] text-[var(--neon)] bg-[rgba(61,90,254,0.06)]'
+                : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)]'
+            }`}
+          >
+            <Icon name="FileText" size={11} />
+            <span className="hidden sm:inline">Данные заказа</span>
+            {quote?.client_name && (
+              <span className="hidden md:inline text-[var(--text-secondary)] max-w-[80px] truncate ml-0.5">· {quote.client_name}</span>
+            )}
+          </button>
 
           <button
             onClick={() => navigate('/quotes')}
@@ -166,14 +183,12 @@ export default function Index() {
             </span>
           </button>
 
-          {state.step > 0 && (
-            <button
-              onClick={reset}
-              className="text-[10px] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors px-2 py-1 rounded border border-[var(--border)]"
-            >
-              ✕
-            </button>
-          )}
+          <button
+            onClick={reset}
+            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors px-2 py-1 rounded border border-[var(--border)]"
+          >
+            ✕
+          </button>
         </div>
       </header>
 
@@ -188,9 +203,29 @@ export default function Index() {
         />
       )}
 
+      {/* ─── Модалка: Данные заказа ─────────────────────────────────── */}
+      {showQuote && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-6 px-4">
+          <div className="w-full max-w-4xl animate-fadein">
+            <Step0Quote
+              state={state}
+              update={update}
+              next={(patch) => { update(patch || {}); setShowQuote(false); }}
+            />
+            <div className="flex justify-center mt-3">
+              <button
+                onClick={() => setShowQuote(false)}
+                className="text-xs text-white/40 hover:text-white/70 transition-colors flex items-center gap-1.5"
+              >
+                <Icon name="X" size={12} /> Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Steps ──────────────────────────────────────────────────── */}
       <main className="flex-1 overflow-auto">
-        {state.step === 0 && <Step0Quote state={state} update={update} next={next} />}
         {state.step === 1 && <Step1Start {...stepProps} />}
         {state.step === 2 && <Step2MountType {...stepProps} />}
         {state.step === 3 && <Step3Constructor {...stepProps} />}
