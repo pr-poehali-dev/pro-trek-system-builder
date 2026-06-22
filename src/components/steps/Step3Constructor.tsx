@@ -153,15 +153,15 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
           </div>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {SHAPES.map(shape => (
             <div
               key={shape}
-              className="group relative flex flex-col rounded-2xl overflow-hidden border-2 border-transparent hover:border-[var(--neon)] transition-all duration-200 hover:shadow-[0_0_20px_var(--neon-glow)] hover:-translate-y-0.5"
+              className="group relative flex flex-col rounded-2xl overflow-hidden border-2 border-transparent hover:border-[var(--neon)] transition-all duration-200 hover:shadow-[0_0_20px_var(--neon-glow)] hover:-translate-y-1"
             >
               {/* Фото — клик открывает модалку, карандашик заменяет */}
               <div
-                className="aspect-square bg-[#c8cad4] overflow-hidden relative cursor-pointer"
+                className="aspect-[4/3] bg-[#c8cad4] overflow-hidden relative cursor-pointer"
                 onClick={() => setActiveShape(shape)}
               >
                 <ImageUpload
@@ -171,16 +171,13 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
                   imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onReplace={url => setShapePhoto(shape, url)}
                 />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <ShapeSVG shape={shape} size={54} color="rgba(20,20,40,0.5)" />
-                </div>
               </div>
-              {/* Плашка с названием — клик открывает модалку */}
+              {/* Плашка с названием */}
               <div
                 onClick={() => setActiveShape(shape)}
-                className="bg-[#c8cad4] group-hover:bg-[var(--neon)] py-2 px-2 transition-colors cursor-pointer"
+                className="bg-[#c8cad4] group-hover:bg-[var(--neon)] py-2.5 px-2 transition-colors cursor-pointer"
               >
-                <span className="text-[10px] font-black text-[#1a1a2e] group-hover:text-white tracking-wider uppercase block text-center transition-colors">
+                <span className="text-[11px] font-black text-[#1a1a2e] group-hover:text-white tracking-wider uppercase block text-center transition-colors">
                   {SHAPE_META[shape].label}
                 </span>
               </div>
