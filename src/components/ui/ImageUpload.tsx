@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 
 interface Props {
@@ -12,15 +12,11 @@ interface Props {
 export default function ImageUpload({ src, alt = '', className = '', imgClassName = 'w-full h-full object-cover', onReplace }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [hover, setHover] = useState(false);
-  const [localSrc, setLocalSrc] = useState(src);
-
-  useEffect(() => { setLocalSrc(src); }, [src]);
 
   const handleFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = e => {
       const url = e.target?.result as string;
-      setLocalSrc(url);
       onReplace?.(url);
     };
     reader.readAsDataURL(file);
@@ -41,7 +37,7 @@ export default function ImageUpload({ src, alt = '', className = '', imgClassNam
       onDragOver={e => e.preventDefault()}
     >
       <img
-        src={localSrc}
+        src={src}
         alt={alt}
         className={imgClassName}
         onError={e => { (e.target as HTMLImageElement).style.opacity = '0'; }}
