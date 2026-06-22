@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ProjectState } from '@/lib/types';
-import { calculateSpec } from '@/lib/api';
+import { calculateSpec, getSupplierSystems } from '@/lib/api';
 import ProgressBar from '@/components/ProgressBar';
 import ImageUpload from '@/components/ui/ImageUpload';
 import Icon from '@/components/ui/icon';
@@ -31,95 +31,93 @@ interface SystemOption {
 const ARLIGHT_LOGO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/67102236-293c-4925-b47f-e13686e93b7e.jpg';
 const EGO_LOGO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/9e2f7080-ba25-407a-a4ab-2a89623e9876.jpg';
 
-const INIT_SYSTEMS: SystemOption[] = [
-  {
-    supplierCode: 'arlight',
-    supplierName: 'Arlight',
-    supplierColor: '#3d5afe',
-    supplierLogo: ARLIGHT_LOGO,
-    seriesId: 44,
-    seriesName: 'TRACK-4TR (220В)',
-    voltage: 220,
-    totalPrice: null,
-    spec: [],
-    summary: null,
-    description: 'Классическая 4-проводная система. Накладная, встраиваемая, подвесная.',
-    pills: [{ label: '220В' }, { label: '4-проводная' }, { label: 'Накладная' }, { label: 'Встраиваемая' }, { label: 'Подвесная' }],
-  },
-  {
-    supplierCode: 'arlight',
-    supplierName: 'Arlight',
-    supplierColor: '#3d5afe',
-    supplierLogo: ARLIGHT_LOGO,
-    seriesId: 42,
-    seriesName: 'MAG-45 (48В)',
-    voltage: 48,
-    totalPrice: null,
-    spec: [],
-    summary: null,
-    description: 'Низковольтная система 48В. Безопасна, компактна, IP20.',
-    pills: [{ label: '48В' }, { label: 'Маломощная' }, { label: 'IP20' }, { label: 'Накладная' }, { label: 'Встраиваемая' }],
-  },
-  {
-    supplierCode: 'arlight',
-    supplierName: 'Arlight',
-    supplierColor: '#3d5afe',
-    supplierLogo: ARLIGHT_LOGO,
-    seriesId: 43,
-    seriesName: 'MAG-20 (24В)',
-    voltage: 24,
-    totalPrice: null,
-    spec: [],
-    summary: null,
-    description: 'Ультракомпактная система 24В для небольших помещений.',
-    pills: [{ label: '24В' }, { label: 'Компактная' }, { label: 'IP20' }, { label: 'Накладная' }],
-  },
-  {
-    supplierCode: 'ego',
-    supplierName: 'EGO Lighting',
-    supplierColor: '#f59e0b',
-    supplierLogo: EGO_LOGO,
-    seriesId: null,
-    seriesName: 'EGO Track System',
-    voltage: 220,
-    totalPrice: null,
-    spec: [],
-    summary: null,
-    description: 'Премиум-трек 220В. Демо-версия каталога.',
-    pills: [{ label: '220В' }, { label: '4-проводная' }, { label: 'DEMO' }],
-  },
-];
+// Метаданные поставщиков — фолбэк если БД пустая
+const SUPPLIER_META: Record<string, { name: string; color: string; logo: string; seriesId: number | null; voltage: number; description: string }[]> = {
+  arlight: [
+    { name: 'TRACK-4TR (220В)', color: '#3d5afe', logo: ARLIGHT_LOGO, seriesId: 44, voltage: 220, description: 'Классическая 4-проводная система. Накладная, встраиваемая, подвесная.' },
+    { name: 'MAG-45 (48В)',     color: '#3d5afe', logo: ARLIGHT_LOGO, seriesId: 42, voltage: 48,  description: 'Низковольтная система 48В. Безопасна, компактна, IP20.' },
+    { name: 'MAG-20 (24В)',     color: '#3d5afe', logo: ARLIGHT_LOGO, seriesId: 43, voltage: 24,  description: 'Ультракомпактная система 24В для небольших помещений.' },
+  ],
+  ego: [
+    { name: 'EGO Track System', color: '#f59e0b', logo: EGO_LOGO, seriesId: null, voltage: 220, description: 'Премиум-трек 220В. Демо-версия каталога.' },
+  ],
+};
 
 const MOUNT_LABELS: Record<string, string> = {
   surface: 'Накладной', built_in: 'Встраиваемый', harpoon: 'Гарпун', other: 'Подвесной',
 };
 
 export default function Step5SystemSelect({ state, update, next, back, totalSteps }: Props) {
-  const [systems, setSystems] = useState<SystemOption[]>(INIT_SYSTEMS);
+  const [systems, setSystems] = useState<SystemOption[]>([]);
   const [logos, setLogos] = useState<Record<string, string>>({ arlight: ARLIGHT_LOGO, ego: EGO_LOGO });
   const [loading, setLoading] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<string | null>(null);
+  const [loadingDb, setLoadingDb] = useState(true);
 
   const constructionsPayload = state.constructions.map(c => ({ shape: c.shape, dims: c.dims }));
   const totalLength = state.constructions.reduce((s, c) => s + c.totalLength, 0);
 
+  // 1. Загружаем конфиг из БД, фильтруем по mountType, затем считаем цены
   useEffect(() => {
     if (!state.constructions.length) return;
-    INIT_SYSTEMS.forEach((sys, idx) => {
-      setLoading(prev => ({ ...prev, [idx]: true }));
-      calculateSpec({
-        constructions: constructionsPayload,
-        supplier_code: sys.supplierCode,
-        voltage: sys.voltage,
-        mount_type: state.mountType,
-      }).then(res => {
-        setSystems(prev => {
-          const updated = [...prev];
-          updated[idx] = { ...updated[idx], totalPrice: res.summary?.total_price ?? null, spec: res.spec ?? [], summary: res.summary ?? null };
-          return updated;
+
+    getSupplierSystems().then(dbData => {
+      // Строим список систем из БД или фолбэк-метаданных
+      const filtered: SystemOption[] = [];
+
+      const supplierCodes = Object.keys(SUPPLIER_META);
+      for (const code of supplierCodes) {
+        const meta = SUPPLIER_META[code];
+        const dbSupplier = dbData[code] ?? {};
+
+        meta.forEach((m, i) => {
+          const dbSys = dbSupplier[i];
+          // Если в БД есть запись — берём типы из БД, иначе показываем всё (фолбэк)
+          const allowedTypes: string[] = dbSys?.types ?? [];
+          // Если в БД пусто — показываем систему без фильтра (данные ещё не настроены)
+          const passes = allowedTypes.length === 0 || allowedTypes.includes(state.mountType ?? '');
+          if (!passes) return;
+
+          filtered.push({
+            supplierCode: code,
+            supplierName: code === 'arlight' ? 'Arlight' : 'EGO Lighting',
+            supplierColor: m.color,
+            supplierLogo: m.logo,
+            seriesId: m.seriesId,
+            seriesName: m.name,
+            voltage: m.voltage,
+            totalPrice: null,
+            spec: [],
+            summary: null,
+            description: m.description,
+            pills: [
+              { label: `${m.voltage}В` },
+              ...(dbSys?.wires ? [{ label: dbSys.wires }] : []),
+            ],
+          });
         });
-      }).catch(() => {}).finally(() => {
-        setLoading(prev => ({ ...prev, [idx]: false }));
+      }
+
+      setSystems(filtered);
+      setLoadingDb(false);
+
+      // 2. Считаем цены для каждой прошедшей фильтр системы
+      filtered.forEach((sys, idx) => {
+        setLoading(prev => ({ ...prev, [idx]: true }));
+        calculateSpec({
+          constructions: constructionsPayload,
+          supplier_code: sys.supplierCode,
+          voltage: sys.voltage,
+          mount_type: state.mountType,
+        }).then(res => {
+          setSystems(prev => {
+            const updated = [...prev];
+            updated[idx] = { ...updated[idx], totalPrice: res.summary?.total_price ?? null, spec: res.spec ?? [], summary: res.summary ?? null };
+            return updated;
+          });
+        }).catch(() => {}).finally(() => {
+          setLoading(prev => ({ ...prev, [idx]: false }));
+        });
       });
     });
   }, []);
@@ -163,6 +161,19 @@ export default function Step5SystemSelect({ state, update, next, back, totalStep
             </div>
           )}
         </div>
+
+        {/* Загрузка из БД */}
+        {loadingDb && (
+          <div className="text-center py-12 text-white/30 text-sm animate-pulse">Загружаю доступные системы...</div>
+        )}
+
+        {/* Нет систем для выбранного типа */}
+        {!loadingDb && systems.length === 0 && (
+          <div className="pro-card p-8 text-center">
+            <Icon name="AlertCircle" size={32} className="mx-auto mb-3 text-amber-400/60" />
+            <div className="text-sm text-white/50">Для выбранного типа установки нет доступных систем.<br/>Настройте их в разделе Настройки → Поставщики.</div>
+          </div>
+        )}
 
         {/* Карточки систем */}
         <div className="space-y-3">
