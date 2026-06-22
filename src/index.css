@@ -115,6 +115,10 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   transition: all 0.2s;
+  transform: translateZ(0);
+  will-change: transform;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
 }
 .pro-card:hover {
   border-color: rgba(61, 90, 254, 0.4);
@@ -125,6 +129,13 @@
   box-shadow:
     0 0 0 1px var(--neon),
     0 4px 24px var(--neon-glow);
+}
+
+/* Фикс скруглений при transform/scale на всех карточках */
+[class*="rounded-"] {
+  transform: translateZ(0);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
 }
 
 /* Progress bar */
