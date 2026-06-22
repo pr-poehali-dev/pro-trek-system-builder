@@ -35,7 +35,7 @@ interface Category { key: string; label: string; products: Product[] }
 interface Series   { id: number; name: string; voltage: number | null; product_count: number; categories: Category[] }
 interface Supplier { id: number; code: string; name: string; series: Series[] }
 
-const SUPPLIER_COLORS: Record<string, string> = { arlight: '#3d5afe', ego: '#f59e0b' };
+const SUPPLIER_COLORS: Record<string, string> = { arlight: '#3d5afe' };
 
 const SUPPLIERS_DEFAULT: SupplierDef[] = [
   {

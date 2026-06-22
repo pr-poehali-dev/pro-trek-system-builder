@@ -29,7 +29,6 @@ interface SystemOption {
 }
 
 const ARLIGHT_LOGO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/67102236-293c-4925-b47f-e13686e93b7e.jpg';
-const EGO_LOGO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/9e2f7080-ba25-407a-a4ab-2a89623e9876.jpg';
 
 // Метаданные поставщиков — фолбэк если БД пустая
 const SUPPLIER_META: Record<string, { name: string; color: string; logo: string; seriesId: number | null; voltage: number; description: string }[]> = {
@@ -37,9 +36,6 @@ const SUPPLIER_META: Record<string, { name: string; color: string; logo: string;
     { name: 'TRACK-4TR (220В)', color: '#3d5afe', logo: ARLIGHT_LOGO, seriesId: 44, voltage: 220, description: 'Классическая 4-проводная система. Накладная, встраиваемая, подвесная.' },
     { name: 'MAG-45 (48В)',     color: '#3d5afe', logo: ARLIGHT_LOGO, seriesId: 42, voltage: 48,  description: 'Низковольтная система 48В. Безопасна, компактна, IP20.' },
     { name: 'MAG-20 (24В)',     color: '#3d5afe', logo: ARLIGHT_LOGO, seriesId: 43, voltage: 24,  description: 'Ультракомпактная система 24В для небольших помещений.' },
-  ],
-  ego: [
-    { name: 'EGO Track System', color: '#f59e0b', logo: EGO_LOGO, seriesId: null, voltage: 220, description: 'Премиум-трек 220В. Демо-версия каталога.' },
   ],
 };
 
@@ -49,7 +45,7 @@ const MOUNT_LABELS: Record<string, string> = {
 
 export default function Step5SystemSelect({ state, update, next, back, totalSteps }: Props) {
   const [systems, setSystems] = useState<SystemOption[]>([]);
-  const [logos, setLogos] = useState<Record<string, string>>({ arlight: ARLIGHT_LOGO, ego: EGO_LOGO });
+  const [logos, setLogos] = useState<Record<string, string>>({ arlight: ARLIGHT_LOGO });
   const [loading, setLoading] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [loadingDb, setLoadingDb] = useState(true);
@@ -80,7 +76,7 @@ export default function Step5SystemSelect({ state, update, next, back, totalStep
 
           filtered.push({
             supplierCode: code,
-            supplierName: code === 'arlight' ? 'Arlight' : 'EGO Lighting',
+            supplierName: code === 'arlight' ? 'Arlight' : code,
             supplierColor: m.color,
             supplierLogo: m.logo,
             seriesId: m.seriesId,

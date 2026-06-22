@@ -22,8 +22,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 const SUPPLIERS_META: Record<string, { name: string; color: string; badge?: string }> = {
-  arlight: { name: 'Arlight',      color: '#3d5afe' },
-  ego:     { name: 'EGO Lighting', color: '#f59e0b', badge: 'DEMO' },
+  arlight: { name: 'Arlight', color: '#3d5afe' },
 };
 
 function AngleSelector({ item, choice, onChange }: {

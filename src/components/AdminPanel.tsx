@@ -18,14 +18,6 @@ const SUPPLIERS = [
     statusLabel: 'Ожидает доступ из ЛК',
     statusColor: '#f59e0b',
   },
-  {
-    code: 'ego',
-    name: 'EGO Lighting',
-    note: 'EGO-TRACK-48 + EGO-TRACK-220',
-    status: 'demo',
-    statusLabel: 'Demo-данные',
-    statusColor: '#8b5cf6',
-  },
 ];
 
 // Типы файлов которые может прислать поставщик

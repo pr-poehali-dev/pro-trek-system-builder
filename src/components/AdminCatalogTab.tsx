@@ -19,7 +19,6 @@ const CATEGORY_OPTIONS = [
 
 const SUPPLIER_COLORS: Record<string, string> = {
   arlight: '#3d5afe',
-  ego:     '#f59e0b',
 };
 
 interface Product {
