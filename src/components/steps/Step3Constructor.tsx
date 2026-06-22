@@ -42,7 +42,7 @@ function AddShapeModal({ shape, photo, onAdd, onClose, onReplacePhoto }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 pt-16">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl w-full max-w-sm mx-4 overflow-hidden animate-fadein shadow-2xl">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
