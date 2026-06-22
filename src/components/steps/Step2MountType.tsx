@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { ProjectState, MountType } from '@/lib/types';
 import ProgressBar from '@/components/ProgressBar';
+import ImageUpload from '@/components/ui/ImageUpload';
+import Icon from '@/components/ui/icon';
 
 interface Props { state: ProjectState; next: (p?: Partial<ProjectState>) => void; back: () => void; totalSteps: number; }
 
 const CATALOG_IMG = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/0b607444-c50c-46fa-8b5a-3774ea8c555c.png';
 
-const TYPES: { id: MountType; title: string; sub: string; img: string }[] = [
+const DEFAULT_TYPES: { id: MountType; title: string; sub: string; img: string }[] = [
   { id: 'surface',  title: 'Накладные',  sub: 'На поверхность',  img: CATALOG_IMG },
   { id: 'built_in', title: 'Для ГКЛ',   sub: 'Встраиваемые',    img: CATALOG_IMG },
   { id: 'harpoon',  title: 'Для ПВХ',   sub: 'Гарпунные',       img: CATALOG_IMG },
@@ -15,10 +17,10 @@ const TYPES: { id: MountType; title: string; sub: string; img: string }[] = [
 
 export default function Step2MountType({ state, next, back, totalSteps }: Props) {
   const [mount, setMount] = useState<MountType | null>(state.mountType);
+  const [types, setTypes] = useState(DEFAULT_TYPES);
 
   const handleSelect = (id: MountType) => {
     setMount(id);
-    // Сразу переходим при выборе карточки — напряжение пока не фильтруем
     next({ mountType: id, voltage: null });
   };
 
@@ -27,43 +29,49 @@ export default function Step2MountType({ state, next, back, totalSteps }: Props)
       <ProgressBar current={2} total={totalSteps} label="Тип установки" />
       <div className="max-w-5xl mx-auto px-6 py-6">
 
-        <button onClick={back} className="text-[var(--neon)] text-sm mb-5 hover:opacity-80 flex items-center gap-1 transition-opacity">
-          ← Назад
+        <button onClick={back} className="text-[var(--neon)] text-sm mb-6 hover:opacity-80 flex items-center gap-1.5 transition-opacity">
+          <Icon name="ArrowLeft" size={14} /> Назад
         </button>
 
-        <div className="pro-card p-4 mb-6">
-          <h2 className="text-base font-bold text-[var(--text-primary)]">Выберите тип установки</h2>
+        <div className="mb-6">
+          <h2 className="text-xl font-black text-[var(--text-primary)]">Выберите тип установки</h2>
+          <p className="text-sm text-[var(--text-muted)] mt-1">Наведите на карточку, чтобы заменить фото</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {TYPES.map(t => (
-            <button
+          {types.map((t, i) => (
+            <div
               key={t.id}
               onClick={() => handleSelect(t.id)}
-              className={`pro-card overflow-hidden text-left group transition-all duration-200 ${
+              className={`relative pro-card overflow-hidden cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 ${
                 mount === t.id
-                  ? 'selected shadow-[0_0_20px_var(--neon-glow)]'
-                  : 'hover:border-[rgba(61,90,254,0.4)]'
+                  ? 'selected shadow-[0_0_24px_var(--neon-glow)] border-[var(--neon)]'
+                  : 'hover:border-[rgba(61,90,254,0.5)] hover:shadow-[0_0_16px_rgba(61,90,254,0.15)]'
               }`}
             >
               <div className="aspect-[4/3] overflow-hidden bg-[var(--bg-secondary)] relative">
-                <img
+                <ImageUpload
                   src={t.img}
                   alt={t.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  className="w-full h-full"
+                  imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onReplace={url => setTypes(prev => {
+                    const upd = [...prev];
+                    upd[i] = { ...upd[i], img: url };
+                    return upd;
+                  })}
                 />
                 {mount === t.id && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[var(--neon)] flex items-center justify-center text-white text-xs shadow-[0_0_8px_var(--neon-glow)]">
-                    ✓
+                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[var(--neon)] flex items-center justify-center shadow-[0_0_10px_var(--neon-glow)]">
+                    <Icon name="Check" size={12} className="text-white" />
                   </div>
                 )}
               </div>
-              <div className="p-3">
-                <div className="font-semibold text-sm text-[var(--text-primary)]">{t.title}</div>
-                <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">{t.sub}</div>
+              <div className={`p-3.5 transition-colors ${mount === t.id ? 'bg-[rgba(61,90,254,0.06)]' : 'bg-[var(--bg-secondary)]'}`}>
+                <div className="font-bold text-sm text-[var(--text-primary)]">{t.title}</div>
+                <div className={`text-xs mt-0.5 font-medium ${mount === t.id ? 'text-[var(--neon)]' : 'text-[var(--text-secondary)]'}`}>{t.sub}</div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
 

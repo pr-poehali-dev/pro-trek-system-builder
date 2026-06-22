@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { ProjectState, MountType } from '@/lib/types';
 import ProgressBar from '@/components/ProgressBar';
+import ImageUpload from '@/components/ui/ImageUpload';
+import Icon from '@/components/ui/icon';
 
 interface Props { next: (p?: Partial<ProjectState>) => void; totalSteps: number; back: () => void; }
 
-// Фото из скриншота пользователя + реальные изображения
-const TRACK_TYPES: { id: MountType; title: string; sub: string; img: string }[] = [
+const DEFAULT_TRACK_TYPES = [
   {
     id: 'other',
     title: 'Накладные',
@@ -31,7 +33,7 @@ const TRACK_TYPES: { id: MountType; title: string; sub: string; img: string }[] 
   },
 ];
 
-const EXTRA_TYPES = [
+const DEFAULT_EXTRA_TYPES = [
   {
     id: 'other2',
     title: 'Другие',
@@ -47,75 +49,100 @@ const EXTRA_TYPES = [
 ];
 
 export default function Step1Start({ next, back, totalSteps }: Props) {
+  const [trackTypes, setTrackTypes] = useState(DEFAULT_TRACK_TYPES);
+  const [extraTypes, setExtraTypes] = useState(DEFAULT_EXTRA_TYPES);
+  const [hovered, setHovered] = useState<string | null>(null);
+
   const handleSelect = (id: string) => {
     if (id === 'help') return;
     const mount = (id === 'other2' ? 'other' : id) as MountType;
     next({ mountType: mount, trackType: 'track' });
   };
 
+  const replaceImg = (list: typeof trackTypes, idx: number, url: string) => {
+    const updated = [...list];
+    updated[idx] = { ...updated[idx], img: url };
+    return updated;
+  };
+
+  const allCards = [
+    ...trackTypes.map((t, i) => ({ ...t, listIdx: i, listKey: 'track' as const })),
+    ...extraTypes.map((t, i) => ({ ...t, listIdx: i, listKey: 'extra' as const })),
+  ];
+
   return (
     <div className="animate-fadein">
       <ProgressBar current={1} total={totalSteps} label="Тип трека" />
 
       <div className="max-w-5xl mx-auto px-6 py-6">
-        <button onClick={back} className="text-[var(--neon)] text-sm mb-5 hover:opacity-80 flex items-center gap-1 transition-opacity">
-          ← К данным заказчика
+        <button onClick={back} className="text-[var(--neon)] text-sm mb-6 hover:opacity-80 flex items-center gap-1.5 transition-opacity">
+          <Icon name="ArrowLeft" size={14} /> К данным заказчика
         </button>
-        <div className="pro-card p-4 mb-6">
-          <h2 className="text-base font-bold text-[var(--text-primary)]">Выберите Тип трека</h2>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-black text-[var(--text-primary)]">Выберите тип трека</h2>
+          <p className="text-sm text-[var(--text-muted)] mt-1">Наведите на карточку, чтобы заменить фото</p>
         </div>
 
-        {/* Top row — 4 cards */}
+        {/* Основные 4 карточки */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          {TRACK_TYPES.map(t => (
-            <button
+          {trackTypes.map((t, i) => (
+            <div
               key={t.id}
+              className="relative pro-card overflow-hidden cursor-pointer group transition-all duration-200 hover:border-[var(--neon)] hover:shadow-[0_0_24px_var(--neon-glow)] hover:-translate-y-0.5"
+              onMouseEnter={() => setHovered(t.id)}
+              onMouseLeave={() => setHovered(null)}
               onClick={() => handleSelect(t.id)}
-              className="pro-card overflow-hidden text-left group transition-all duration-200 hover:border-[var(--neon)] hover:shadow-[0_0_20px_var(--neon-glow)] cursor-pointer"
             >
-              <div className="aspect-[4/3] overflow-hidden bg-[var(--bg-secondary)] relative">
-                <img
+              <div className="aspect-[4/3] overflow-hidden bg-[var(--bg-secondary)]">
+                <ImageUpload
                   src={t.img}
                   alt={t.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  className="w-full h-full"
+                  imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onReplace={url => setTrackTypes(prev => replaceImg(prev, i, url))}
                 />
               </div>
-              <div className="p-3 bg-white">
-                <div className="font-bold text-sm text-[#111]">{t.title}</div>
-                <div className="text-xs text-[#666] mt-0.5">{t.sub}</div>
+              <div className="p-3.5 bg-[var(--bg-secondary)]">
+                <div className="font-bold text-sm text-[var(--text-primary)]">{t.title}</div>
+                <div className="text-xs text-[var(--neon)] mt-0.5 font-medium">{t.sub}</div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
 
-        {/* Bottom row — 2 cards */}
+        {/* 2 дополнительные карточки */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {EXTRA_TYPES.map(t => (
-            <button
+          {extraTypes.map((t, i) => (
+            <div
               key={t.id}
+              className={`relative pro-card overflow-hidden cursor-pointer group transition-all duration-200 hover:border-[var(--neon)] hover:shadow-[0_0_24px_var(--neon-glow)] hover:-translate-y-0.5 ${
+                t.id === 'help' ? 'md:col-span-1' : 'md:col-span-1'
+              }`}
+              onMouseEnter={() => setHovered(t.id)}
+              onMouseLeave={() => setHovered(null)}
               onClick={() => handleSelect(t.id)}
-              className={`pro-card overflow-hidden text-left group transition-all duration-200 ${
-                t.id === 'help'
-                  ? 'hover:border-[var(--neon)] hover:shadow-[0_0_20px_var(--neon-glow)]'
-                  : 'hover:border-[var(--neon)] hover:shadow-[0_0_20px_var(--neon-glow)]'
-              } cursor-pointer`}
             >
-              <div className="aspect-[4/3] overflow-hidden bg-[var(--bg-secondary)] relative">
-                <img
+              <div className="aspect-[4/3] overflow-hidden bg-[var(--bg-secondary)]">
+                <ImageUpload
                   src={t.img}
                   alt={t.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  className="w-full h-full"
+                  imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onReplace={url => setExtraTypes(prev => replaceImg(prev, i, url))}
                 />
+                {t.id === 'help' && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-[rgba(61,90,254,0.7)] to-transparent flex items-end p-3 pointer-events-none">
+                    <span className="text-[10px] text-white font-semibold bg-[var(--neon)] px-2 py-0.5 rounded-full">Бесплатно</span>
+                  </div>
+                )}
               </div>
-              <div className="p-3 bg-white">
-                <div className="font-bold text-sm text-[#111]">{t.title}</div>
-                <div className="text-xs text-[#666] mt-0.5">{t.sub}</div>
+              <div className="p-3.5 bg-[var(--bg-secondary)]">
+                <div className="font-bold text-sm text-[var(--text-primary)]">{t.title}</div>
+                <div className={`text-xs mt-0.5 font-medium ${t.id === 'help' ? 'text-[var(--neon)]' : 'text-[var(--text-secondary)]'}`}>{t.sub}</div>
               </div>
-            </button>
+            </div>
           ))}
-          {/* Spacers for grid alignment */}
           <div className="hidden md:block" />
           <div className="hidden md:block" />
         </div>
