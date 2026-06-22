@@ -172,15 +172,14 @@ export default function Index() {
 
           <button
             onClick={() => setShowAdmin(!showAdmin)}
-            className={`flex items-center gap-1.5 text-[10px] transition-colors px-2.5 py-1 rounded border hover:border-[var(--neon)] hover:text-[var(--neon)] ${
+            className={`flex items-center gap-1.5 text-[10px] transition-colors px-2.5 py-1.5 rounded border hover:border-[var(--neon)] hover:text-[var(--neon)] ${
               showAdmin
                 ? 'border-[var(--neon)] text-[var(--neon)]'
                 : 'border-[var(--border)] text-[var(--text-muted)]'
             }`}
           >
-            ⚙ <span className={`hidden sm:inline font-semibold ${state.supplierCode === 'ego' ? 'text-amber-400' : ''}`}>
-              {state.supplierCode === 'ego' ? 'EGO' : 'ARL'}
-            </span>
+            <Icon name="Settings" size={11} />
+            <span className="hidden sm:inline font-semibold">Настройки</span>
           </button>
 
           <button
