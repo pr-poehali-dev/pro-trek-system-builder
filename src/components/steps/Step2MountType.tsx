@@ -7,17 +7,18 @@ import { usePersistedImages } from '@/lib/usePersistedImages';
 
 interface Props { state: ProjectState; next: (p?: Partial<ProjectState>) => void; back: () => void; totalSteps: number; }
 
-const CATALOG_IMG = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/0b607444-c50c-46fa-8b5a-3774ea8c555c.png';
-
 const TYPES: { id: MountType; title: string; sub: string }[] = [
-  { id: 'surface',  title: 'Универсальные',       sub: 'На поверхность'    },
-  { id: 'harpoon',  title: 'Гарпунные',           sub: 'Натяжной потолок'  },
-  { id: 'other',    title: 'На поверхность',      sub: 'Накладной монтаж'  },
-  { id: 'built_in', title: 'Для гипсокартона',   sub: 'Встраиваемые'      },
+  { id: 'surface',  title: 'Универсальные',     sub: 'На поверхность'   },
+  { id: 'harpoon',  title: 'Гарпунные',         sub: 'Натяжной потолок' },
+  { id: 'other',    title: 'На поверхность',    sub: 'Накладной монтаж' },
+  { id: 'built_in', title: 'Для гипсокартона', sub: 'Встраиваемые'     },
 ];
 
 const DEFAULTS: Record<string, string> = {
-  surface: CATALOG_IMG, built_in: CATALOG_IMG, harpoon: CATALOG_IMG, other: CATALOG_IMG,
+  surface:  'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3cfb2024-bbbd-495a-80d1-6c5c6b022b83.png',
+  harpoon:  'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/9c09c460-9b9e-425e-8534-428039ef84f8.jpg',
+  other:    'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/81e9c27a-3c8e-4ae1-90a2-a0bde00b0a62.jpg',
+  built_in: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/582d9509-9eb3-455b-9ce2-147380a6b679.jpg',
 };
 
 export default function Step2MountType({ state, next, back, totalSteps }: Props) {

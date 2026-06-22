@@ -8,8 +8,8 @@ import { useState } from 'react';
 interface Props { next: (p?: Partial<ProjectState>) => void; totalSteps: number; back: () => void; }
 
 const DEFAULTS: Record<string, string> = {
-  track: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/6b348685-8118-491d-94e6-d4fd550a3c29.png',
-  lighting: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/6b348685-8118-491d-94e6-d4fd550a3c29.png',
+  track: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/8763863c-56c9-4039-8798-8fbdda6397f9.gif',
+  lighting: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/32bf3982-cce5-44a4-aa29-14568c42a34e.gif',
 };
 
 const CATEGORIES = [

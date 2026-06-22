@@ -12,11 +12,11 @@ interface Props { state: ProjectState; update: (p: Partial<ProjectState>) => voi
 const SHAPES: ShapeType[] = ['straight', 'l_shaped', 's_shaped', 'u_shaped', 'closed'];
 
 const DEFAULT_SHAPE_PHOTOS: Record<ShapeType, string> = {
-  straight: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/d5628365-782a-44cd-b380-7e04992ea4ec.jpg',
-  l_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/95fc1943-4862-4c4d-bc8f-75a68ac6cf3c.png',
-  s_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/264c3123-7eb0-44bc-9a5c-df340462c955.jpg',
-  u_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/9f3b9c87-6d06-4490-9ab6-efbf34da41f5.jpg',
-  closed:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/4a653f0a-8426-455b-8fd4-3b6fda7e3485.jpg',
+  straight: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/9727971c-bc23-41d9-bd0b-23f710886c8f.png',
+  l_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/ab8036a8-9cf5-4364-a03e-e296799b0c8f.png',
+  s_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/cfb8a087-e087-4a47-976c-8c9d25474d56.png',
+  u_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3b53500a-286f-46a8-a75b-1b94e1f4de4f.png',
+  closed:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/1b14201f-d874-4cd9-bb01-891b4fe8ac06.png',
   custom:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/1c642422-3c66-423b-a0cf-625ff221cc18.png',
 };
 
