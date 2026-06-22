@@ -5,6 +5,7 @@ import ProgressBar from '@/components/ProgressBar';
 import ShapeSVG from '@/components/ShapeSVG';
 import ImageUpload from '@/components/ui/ImageUpload';
 import Icon from '@/components/ui/icon';
+import { usePersistedImages } from '@/lib/usePersistedImages';
 
 interface Props { state: ProjectState; update: (p: Partial<ProjectState>) => void; next: (p?: Partial<ProjectState>) => void; back: () => void; totalSteps: number; }
 
@@ -124,7 +125,7 @@ function AddShapeModal({ shape, photo, onAdd, onClose, onReplacePhoto }: {
 
 export default function Step3Constructor({ state, update, next, back, totalSteps }: Props) {
   const [activeShape, setActiveShape] = useState<ShapeType | null>(null);
-  const [shapePhotos, setShapePhotos] = useState(DEFAULT_SHAPE_PHOTOS);
+  const { images: shapePhotos, setImage: setShapePhoto } = usePersistedImages('step3', DEFAULT_SHAPE_PHOTOS as Record<string, string>);
 
   const handleAdd = (c: Construction) => {
     const updated = [...state.constructions, c];
@@ -158,14 +159,17 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
               key={shape}
               className="group relative flex flex-col rounded-2xl overflow-hidden border-2 border-transparent hover:border-[var(--neon)] transition-all duration-200 hover:shadow-[0_0_20px_var(--neon-glow)] hover:-translate-y-0.5"
             >
-              {/* Фото — только карандашик */}
-              <div className="aspect-square bg-[#c8cad4] overflow-hidden relative">
+              {/* Фото — клик открывает модалку, карандашик заменяет */}
+              <div
+                className="aspect-square bg-[#c8cad4] overflow-hidden relative cursor-pointer"
+                onClick={() => setActiveShape(shape)}
+              >
                 <ImageUpload
                   src={shapePhotos[shape]}
                   alt={SHAPE_META[shape].label}
                   className="w-full h-full"
                   imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onReplace={url => setShapePhotos(prev => ({ ...prev, [shape]: url }))}
+                  onReplace={url => setShapePhoto(shape, url)}
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <ShapeSVG shape={shape} size={54} color="rgba(20,20,40,0.5)" />
@@ -205,7 +209,7 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
           photo={shapePhotos[activeShape]}
           onAdd={handleAdd}
           onClose={() => setActiveShape(null)}
-          onReplacePhoto={url => setShapePhotos(prev => ({ ...prev, [activeShape]: url }))}
+          onReplacePhoto={url => setShapePhoto(activeShape, url)}
         />
       )}
     </div>
