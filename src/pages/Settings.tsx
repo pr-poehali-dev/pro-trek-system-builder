@@ -322,16 +322,30 @@ function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesI
     setLoading(true);
     getCatalogHierarchy().then((d: Supplier[]) => {
       setCatalog(d);
-      // Автовыбор по id
+      // Автовыбор по id серии
       if (initSeriesId) {
         const sup = d.find(s => s.series.some(sr => sr.id === initSeriesId));
         if (sup) { setSelectedSup(sup.id); setSelectedSeries(initSeriesId); }
       }
-      // Автовыбор по имени (переход из вкладки Поставщики)
-      if (initSeriesName) {
+      // Автовыбор по имени серии (переход из Поставщики)
+      else if (initSeriesName) {
         for (const sup of d) {
           const sr = sup.series.find(s => s.name === initSeriesName || s.name.replace('(V)', '(В)') === initSeriesName);
           if (sr) { setSelectedSup(sup.id); setSelectedSeries(sr.id); break; }
+        }
+      }
+      // Автовыбор по ключу категории (переход из Категории) — берём первого поставщика и первую серию с этой категорией
+      else if (initCatKey) {
+        for (const sup of d) {
+          const sr = sup.series.find(s => s.categories.some(c => c.key === initCatKey));
+          if (sr) { setSelectedSup(sup.id); setSelectedSeries(sr.id); setSelectedCat(initCatKey); break; }
+        }
+        // Если ни одна серия не содержит — просто выбираем первого поставщика и первую серию
+        if (!d.flatMap(s => s.series).some(sr => sr.categories.some(c => c.key === initCatKey))) {
+          if (d.length > 0) {
+            setSelectedSup(d[0].id);
+            if (d[0].series.length > 0) setSelectedSeries(d[0].series[0].id);
+          }
         }
       }
       setLoading(false);
@@ -362,14 +376,24 @@ function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesI
   return (
     <div className="space-y-3">
       {/* Поставщики */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         {catalog.map(sup => (
-          <button key={sup.id}
-            onClick={() => { setSelectedSup(sup.id); setSelectedSeries(null); setSelectedCat(null); }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all ${selectedSup === sup.id ? 'bg-[var(--neon)] text-white' : 'bg-white/6 text-white/50 hover:text-white hover:bg-white/10'}`}>
-            <img src={ARLIGHT_LOGO} alt="" className="w-4 h-4 rounded object-cover" />
-            {sup.name}
-          </button>
+          <div key={sup.id} className="flex items-center gap-0">
+            <button
+              onClick={() => { setSelectedSup(sup.id); setSelectedSeries(null); setSelectedCat(null); }}
+              className={`flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-l-xl text-sm font-semibold transition-all ${selectedSup === sup.id ? 'bg-[var(--neon)] text-white' : 'bg-white/6 text-white/50 hover:text-white hover:bg-white/10'}`}>
+              <img src={ARLIGHT_LOGO} alt="" className="w-4 h-4 rounded object-cover" />
+              {sup.name}
+            </button>
+            {selectedSup === sup.id && (
+              <button
+                onClick={() => { setSelectedSup(null); setSelectedSeries(null); setSelectedCat(null); }}
+                className="flex items-center pl-1 pr-2 py-1.5 rounded-r-xl bg-[var(--neon)] text-white/70 hover:text-white transition-colors">
+                <Icon name="X" size={13} />
+              </button>
+            )}
+            {selectedSup !== sup.id && <span className="w-0" />}
+          </div>
         ))}
       </div>
 
@@ -377,11 +401,20 @@ function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesI
       {selectedSup && (
         <div className="flex flex-wrap gap-2">
           {catalog.find(s => s.id === selectedSup)?.series.map(sr => (
-            <button key={sr.id}
-              onClick={() => { setSelectedSeries(sr.id); setSelectedCat(null); }}
-              className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${selectedSeries === sr.id ? 'bg-white/15 text-white' : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/8'}`}>
-              {sr.name} <span className="text-xs opacity-50 ml-1">{sr.product_count}</span>
-            </button>
+            <div key={sr.id} className="flex items-center gap-0">
+              <button
+                onClick={() => { setSelectedSeries(sr.id); setSelectedCat(null); }}
+                className={`pl-3 pr-2 py-1.5 text-sm font-medium transition-all ${selectedSeries === sr.id ? 'bg-white/15 text-white rounded-l-xl' : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/8 rounded-xl'}`}>
+                {sr.name} <span className="text-xs opacity-50 ml-1">{sr.product_count}</span>
+              </button>
+              {selectedSeries === sr.id && (
+                <button
+                  onClick={() => { setSelectedSeries(null); setSelectedCat(null); }}
+                  className="flex items-center pl-1 pr-2 py-1.5 rounded-r-xl bg-white/15 text-white/50 hover:text-white transition-colors">
+                  <Icon name="X" size={13} />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -390,11 +423,20 @@ function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesI
       {selectedSeries && (
         <div className="flex flex-wrap gap-2">
           {currentSeries?.categories.map(cat => (
-            <button key={cat.key}
-              onClick={() => setSelectedCat(cat.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${selectedCat === cat.key ? 'bg-white/15 text-white' : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/8'}`}>
-              <span>{catEmoji(cat.key)}</span> {cat.label} <span className="text-xs opacity-50">{cat.products.length}</span>
-            </button>
+            <div key={cat.key} className="flex items-center gap-0">
+              <button
+                onClick={() => setSelectedCat(cat.key)}
+                className={`flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-sm font-medium transition-all whitespace-nowrap ${selectedCat === cat.key ? 'bg-white/15 text-white rounded-l-xl' : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/8 rounded-xl'}`}>
+                <span>{catEmoji(cat.key)}</span> {cat.label} <span className="text-xs opacity-50">{cat.products.length}</span>
+              </button>
+              {selectedCat === cat.key && (
+                <button
+                  onClick={() => setSelectedCat(null)}
+                  className="flex items-center pl-1 pr-2 py-1.5 rounded-r-xl bg-white/15 text-white/50 hover:text-white transition-colors">
+                  <Icon name="X" size={13} />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}
