@@ -58,7 +58,7 @@ const TABS = [
 const inputCls = "bg-white/6 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 placeholder:text-white/25 w-full";
 
 // ─── Поставщики (с раскрывающимися системами) ─────────────────────────────────
-function SuppliersTab({ onGoToProducts }: { onGoToProducts: (seriesName: string) => void }) {
+function SuppliersTab({ onGoToCategories }: { onGoToCategories: (seriesName: string) => void }) {
   const [suppliers, setSuppliers] = useState<SupplierDef[]>(SUPPLIERS_DEFAULT);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<Record<string, boolean>>({ arlight: true });
@@ -125,12 +125,16 @@ function SuppliersTab({ onGoToProducts }: { onGoToProducts: (seriesName: string)
                 const isDropOpen = dropOpen === dropKey;
                 const activeTypes = ALL_MOUNT_TYPES.filter(mt => sys.types.includes(mt.id));
                 return (
-                  <div key={idx} className="flex items-center gap-3 py-3 border-t border-white/5 first:border-0">
-                    {/* Название + вольтаж */}
-                    <div className="flex items-center gap-2 w-48 flex-shrink-0">
-                      <span className="text-sm font-semibold text-white whitespace-nowrap">{sys.name}</span>
+                  <div key={idx} className="flex items-center gap-3 py-3 border-t border-white/5 first:border-0 group/row">
+                    {/* Название + вольтаж — кликабельное, переход в Категории */}
+                    <button
+                      onClick={() => onGoToCategories(sys.name)}
+                      className="flex items-center gap-2 w-48 flex-shrink-0 text-left hover:text-[var(--neon)] transition-colors group/name"
+                    >
+                      <span className="text-sm font-semibold text-white group-hover/name:text-[var(--neon)] whitespace-nowrap transition-colors">{sys.name}</span>
                       <span className="text-xs px-1.5 py-0.5 rounded text-[var(--neon)] bg-[var(--neon)]/10 font-semibold whitespace-nowrap">{sys.voltage}</span>
-                    </div>
+                      <Icon name="ChevronRight" size={13} className="text-white/20 group-hover/name:text-[var(--neon)] transition-colors flex-shrink-0" />
+                    </button>
 
                     {/* Dropdown типов монтажа */}
                     <div className="relative flex-1">
@@ -138,17 +142,16 @@ function SuppliersTab({ onGoToProducts }: { onGoToProducts: (seriesName: string)
                         onClick={() => setDropOpen(isDropOpen ? null : dropKey)}
                         className="flex items-center gap-2 w-full text-left px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/8 transition-colors"
                       >
-                        <span className="text-xs text-white/60 flex-1 truncate">
+                        <span className="text-xs text-white/50 flex-1 truncate">
                           {activeTypes.length === 0
                             ? 'Типы не выбраны'
                             : activeTypes.map(mt => mt.label).join(', ')
                           }
                         </span>
-                        <span className="text-[10px] text-white/30 flex-shrink-0">{activeTypes.length}/{ALL_MOUNT_TYPES.length}</span>
-                        <Icon name={isDropOpen ? 'ChevronUp' : 'ChevronDown'} size={12} className="text-white/30 flex-shrink-0" />
+                        <span className="text-[10px] text-white/25 flex-shrink-0">{activeTypes.length}/{ALL_MOUNT_TYPES.length}</span>
+                        <Icon name={isDropOpen ? 'ChevronUp' : 'ChevronDown'} size={12} className="text-white/25 flex-shrink-0" />
                       </button>
 
-                      {/* Выпадающий список */}
                       {isDropOpen && (
                         <div className="absolute top-full left-0 mt-1 z-50 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl p-1 min-w-48">
                           {ALL_MOUNT_TYPES.map(mt => {
@@ -169,14 +172,6 @@ function SuppliersTab({ onGoToProducts }: { onGoToProducts: (seriesName: string)
                         </div>
                       )}
                     </div>
-
-                    {/* Кнопка перехода к товарам */}
-                    <button
-                      onClick={() => onGoToProducts(sys.name)}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all flex-shrink-0 whitespace-nowrap"
-                    >
-                      Товары <Icon name="ArrowRight" size={12} />
-                    </button>
                   </div>
                 );
               })}
@@ -195,7 +190,7 @@ function SuppliersTab({ onGoToProducts }: { onGoToProducts: (seriesName: string)
 }
 
 // ─── Категории товаров (CRUD) ─────────────────────────────────────────────────
-function CategoriesTab({ onGoToCat }: { onGoToCat: (catKey: string) => void }) {
+function CategoriesTab({ onGoToCat, contextSeriesName }: { onGoToCat: (catKey: string, seriesName?: string) => void; contextSeriesName?: string }) {
   const [cats, setCats] = useState(ALL_CATEGORIES.map(c => ({ ...c, enabled: true, order: ALL_CATEGORIES.indexOf(c) })));
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editLabel, setEditLabel] = useState('');
@@ -228,7 +223,16 @@ function CategoriesTab({ onGoToCat }: { onGoToCat: (catKey: string) => void }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <span className="text-white/40 text-sm">{cats.filter(c => c.enabled).length} из {cats.length} активны</span>
+        {/* Хлебная крошка: если пришли из системы */}
+        {contextSeriesName ? (
+          <div className="flex items-center gap-1.5 text-sm">
+            <span className="text-white/30">Категории системы</span>
+            <Icon name="ChevronRight" size={13} className="text-white/20" />
+            <span className="text-white font-semibold">{contextSeriesName}</span>
+          </div>
+        ) : (
+          <span className="text-white/40 text-sm">{cats.filter(c => c.enabled).length} из {cats.length} активны</span>
+        )}
         <button onClick={() => setAddMode(p => !p)}
           className="ml-auto flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl bg-[var(--neon)]/15 text-[var(--neon)] hover:bg-[var(--neon)]/25 transition-all font-medium">
           <Icon name="Plus" size={14} /> Новая категория
@@ -269,7 +273,7 @@ function CategoriesTab({ onGoToCat }: { onGoToCat: (catKey: string) => void }) {
               className="flex-1 bg-white/8 text-white rounded-lg text-sm px-3 py-1.5 focus:outline-none" />
           ) : (
             <button
-              onClick={() => onGoToCat(cat.key)}
+              onClick={() => onGoToCat(cat.key, contextSeriesName)}
               className={`flex-1 text-left text-sm font-medium transition-colors ${cat.enabled ? 'text-white hover:text-[var(--neon)]' : 'text-white/50'}`}>
               {cat.label}
             </button>
@@ -287,7 +291,7 @@ function CategoriesTab({ onGoToCat }: { onGoToCat: (catKey: string) => void }) {
               </>
             ) : (
               <>
-                <button onClick={() => onGoToCat(cat.key)}
+                <button onClick={() => onGoToCat(cat.key, contextSeriesName)}
                   className="text-white/20 hover:text-[var(--neon)] p-1 transition-colors opacity-0 group-hover:opacity-100">
                   <Icon name="ArrowRight" size={14} />
                 </button>
@@ -530,20 +534,21 @@ export default function Settings() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<'screens' | 'suppliers' | 'categories' | 'products'>('screens');
   const [drillSeriesId, setDrillSeriesId] = useState<number | undefined>();
-  const [drillSeriesName, setDrillSeriesName] = useState<string | undefined>();
+  const [drillSeriesName, setDrillSeriesName] = useState<string | undefined>();  // для Товаров
   const [drillCatKey, setDrillCatKey] = useState<string | undefined>();
+  const [drillSeriesNameForCat, setDrillSeriesNameForCat] = useState<string | undefined>(); // для Категорий
 
-  const goToProducts = (seriesName: string) => {
-    setDrillSeriesName(seriesName);
-    setDrillSeriesId(undefined);
-    setDrillCatKey(undefined);
-    setTab('products');
+  // Поставщики → клик на систему → Категории
+  const goToCategories = (seriesName: string) => {
+    setDrillSeriesNameForCat(seriesName);
+    setTab('categories');
   };
 
-  const goToCat = (catKey: string) => {
+  // Категории → клик на категорию → Товары
+  const goToCat = (catKey: string, seriesName?: string) => {
     setDrillCatKey(catKey);
+    setDrillSeriesName(seriesName);
     setDrillSeriesId(undefined);
-    setDrillSeriesName(undefined);
     setTab('products');
   };
 
@@ -569,8 +574,8 @@ export default function Settings() {
 
       <div className="max-w-3xl mx-auto px-8 py-8">
         {tab === 'screens'    && <AdminScreensTab />}
-        {tab === 'suppliers'  && <SuppliersTab onGoToProducts={goToProducts} />}
-        {tab === 'categories' && <CategoriesTab onGoToCat={goToCat} />}
+        {tab === 'suppliers'  && <SuppliersTab onGoToCategories={goToCategories} />}
+        {tab === 'categories' && <CategoriesTab onGoToCat={goToCat} contextSeriesName={drillSeriesNameForCat} />}
         {tab === 'products'   && <ProductsTab initSeriesId={drillSeriesId} initSeriesName={drillSeriesName} initCatKey={drillCatKey} />}
       </div>
     </div>
