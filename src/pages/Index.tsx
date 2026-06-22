@@ -15,6 +15,12 @@ import Icon from '@/components/ui/icon';
 
 const TOTAL_STEPS = 9;
 
+const STEP_LABELS: Record<number, string> = {
+  1: 'Категория', 2: 'Тип установки', 3: 'Конструктор',
+  4: 'Конструкции', 5: 'Система', 6: 'Комплектующие',
+  7: 'Светильники', 8: 'Электрика', 9: 'Итог',
+};
+
 const initState: ProjectState = {
   step: 1,
   quote: null,
@@ -78,110 +84,68 @@ export default function Index() {
     <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
 
       {/* ─── Header ─────────────────────────────────────────────────── */}
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-secondary)] sticky top-0 z-40">
+      <header className="sticky top-0 z-40 bg-[var(--bg-secondary)] border-b border-[var(--border)]">
+        <div className="flex items-center justify-between px-4 h-12">
 
-        {/* Лого */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={reset}>
-          <div className="w-7 h-7 rounded-lg neon-border flex items-center justify-center animate-pulse-neon">
-            <span className="text-[10px] font-black neon-text font-mono">PT</span>
-          </div>
-          <div className="hidden sm:block">
-            <div className="text-sm font-bold text-[var(--text-primary)] tracking-wider leading-none">
-              PRO<span className="neon-text">-TREK</span>
+          {/* Лого */}
+          <div className="flex items-center gap-2.5 cursor-pointer flex-shrink-0" onClick={reset}>
+            <div className="w-7 h-7 rounded-lg neon-border flex items-center justify-center">
+              <span className="text-[10px] font-black neon-text font-mono">PT</span>
             </div>
-            <div className="text-[8px] text-[var(--text-muted)] tracking-widest uppercase">Constructor</div>
+            <div className="hidden sm:block">
+              <div className="text-sm font-black text-white tracking-wider leading-none">
+                PRO<span className="neon-text">-TREK</span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Центр: номер счёта + статус */}
-        {quote && (
-          <div className="flex items-center gap-2 animate-fadein">
-            <button
-              onClick={() => goToStep(0)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border)] hover:border-[var(--neon)] transition-all group"
-            >
-              <Icon name="FileText" size={12} className="text-[var(--text-muted)] group-hover:text-[var(--neon)]" />
-              <span className="text-xs font-mono text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
-                {quote.number || 'Черновик'}
-              </span>
-            </button>
-            <button
-              onClick={() => goToStep(0)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold text-white transition-all hover:opacity-80"
-              style={{ backgroundColor: statusColor, boxShadow: `0 0 8px ${statusColor}55` }}
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full bg-white/70 animate-pulse"
-              />
-              {statusLabel}
-            </button>
-            {quote.client_name && (
-              <span className="hidden md:block text-xs text-[var(--text-muted)] max-w-[140px] truncate">
-                {quote.client_name}
-              </span>
+          {/* Центр: название текущего шага */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+            {visibleStep >= 1 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-white/30">{visibleStep}/{TOTAL_STEPS}</span>
+                <span className="text-sm font-bold text-white">{STEP_LABELS[visibleStep]}</span>
+              </div>
             )}
           </div>
-        )}
 
-        {/* Правая часть */}
-        <div className="flex items-center gap-2">
-          {/* Прогресс точки */}
-          {visibleStep >= 1 && (
-            <div className="hidden sm:flex gap-1 items-center">
-              {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => goToStep(i + 1)}
-                  title={`Шаг ${i + 1}`}
-                  className={`rounded-full transition-all duration-300 ${
-                    i + 1 < visibleStep
-                      ? 'w-2 h-2 bg-[var(--neon)] shadow-[0_0_4px_var(--neon-glow)] hover:scale-125'
-                      : i + 1 === visibleStep
-                      ? 'w-2.5 h-2.5 bg-[var(--neon)] shadow-[0_0_8px_var(--neon-glow)]'
-                      : 'w-1.5 h-1.5 bg-[var(--border)] hover:bg-[var(--text-muted)]'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
+          {/* Правая часть */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              onClick={() => setShowQuote(true)}
+              className={`flex items-center gap-1.5 text-[10px] font-semibold transition-all px-3 py-1.5 rounded-lg border ${
+                quote
+                  ? 'border-[var(--neon)] text-[var(--neon)] bg-[rgba(61,90,254,0.08)]'
+                  : 'border-white/15 text-white/60 hover:border-[var(--neon)] hover:text-[var(--neon)]'
+              }`}
+            >
+              <Icon name="FileText" size={11} />
+              <span className="hidden sm:inline">Данные заказа</span>
+            </button>
 
-          {/* Данные заказа */}
-          <button
-            onClick={() => setShowQuote(true)}
-            className={`flex items-center gap-1.5 text-[10px] transition-all px-2.5 py-1.5 rounded-lg border ${
-              quote
-                ? 'border-[var(--neon)] text-[var(--neon)] bg-[rgba(61,90,254,0.06)]'
-                : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)]'
-            }`}
-          >
-            <Icon name="FileText" size={11} />
-            <span className="hidden sm:inline">Данные заказа</span>
-            {quote?.client_name && (
-              <span className="hidden md:inline text-[var(--text-secondary)] max-w-[80px] truncate ml-0.5">· {quote.client_name}</span>
-            )}
-          </button>
+            <button
+              onClick={() => navigate('/quotes')}
+              className="hidden sm:flex items-center gap-1.5 text-[10px] font-semibold text-white/60 hover:text-white transition-colors px-3 py-1.5 rounded-lg border border-white/15 hover:border-white/30"
+            >
+              <Icon name="List" size={11} />
+              <span>Мои счета</span>
+            </button>
 
-          <button
-            onClick={() => navigate('/quotes')}
-            className="hidden sm:flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] hover:text-[var(--neon)] transition-colors px-2.5 py-1 rounded border border-[var(--border)] hover:border-[var(--neon)]"
-          >
-            <Icon name="List" size={11} /> Мои счета
-          </button>
+            <button
+              onClick={() => navigate('/settings')}
+              className="flex items-center gap-1.5 text-[10px] font-semibold text-white/60 hover:text-[var(--neon)] transition-colors px-3 py-1.5 rounded-lg border border-white/15 hover:border-[var(--neon)]"
+            >
+              <Icon name="Settings" size={11} />
+              <span className="hidden sm:inline">Настройки</span>
+            </button>
 
-          <button
-            onClick={() => navigate('/settings')}
-            className="flex items-center gap-1.5 text-[10px] transition-colors px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)]"
-          >
-            <Icon name="Settings" size={11} />
-            <span className="hidden sm:inline font-semibold">Настройки</span>
-          </button>
-
-          <button
-            onClick={reset}
-            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors px-2 py-1 rounded border border-[var(--border)]"
-          >
-            ✕
-          </button>
+            <button
+              onClick={reset}
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/15 text-white/40 hover:text-white hover:border-white/30 transition-all text-xs"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       </header>
 
