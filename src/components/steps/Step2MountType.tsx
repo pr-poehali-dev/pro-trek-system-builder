@@ -10,10 +10,10 @@ interface Props { state: ProjectState; next: (p?: Partial<ProjectState>) => void
 const CATALOG_IMG = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/0b607444-c50c-46fa-8b5a-3774ea8c555c.png';
 
 const TYPES: { id: MountType; title: string; sub: string }[] = [
-  { id: 'surface',  title: 'Накладные',  sub: 'На поверхность' },
-  { id: 'built_in', title: 'Для ГКЛ',   sub: 'Встраиваемые'   },
-  { id: 'harpoon',  title: 'Для ПВХ',   sub: 'Гарпунные'      },
-  { id: 'other',    title: 'Подвесные', sub: 'Другие варианты' },
+  { id: 'surface',  title: 'Универсальные',       sub: 'На поверхность'    },
+  { id: 'harpoon',  title: 'Гарпунные',           sub: 'Натяжной потолок'  },
+  { id: 'other',    title: 'На поверхность',      sub: 'Накладной монтаж'  },
+  { id: 'built_in', title: 'Для гипсокартона',   sub: 'Встраиваемые'      },
 ];
 
 const DEFAULTS: Record<string, string> = {
