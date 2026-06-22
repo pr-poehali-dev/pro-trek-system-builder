@@ -257,52 +257,67 @@ function CategoriesTab({ onGoToCat, contextSeriesName }: { onGoToCat: (catKey: s
 
       {/* Список категорий */}
       {cats.map((cat, i) => (
-        <div key={cat.key} className={`flex items-center gap-3 py-3 border-b border-white/5 last:border-0 group ${!cat.enabled ? 'opacity-40' : ''}`}>
-          {/* Эмодзи */}
-          {editIdx === i ? (
-            <input value={editEmoji} onChange={e => setEditEmoji(e.target.value)}
-              className="w-10 text-center bg-white/8 text-white rounded-lg text-lg px-1 py-1 focus:outline-none" />
-          ) : (
+        <div key={cat.key} className={`border-b border-white/5 last:border-0 ${!cat.enabled ? 'opacity-40' : ''}`}>
+          {/* Основная строка */}
+          <div className="flex items-center gap-3 py-3 group">
+            {/* Эмодзи (всегда видно) */}
             <span className="text-xl w-10 text-center flex-shrink-0">{cat.emoji}</span>
-          )}
 
-          {/* Название — кликабельное при не-редактировании */}
-          {editIdx === i ? (
-            <input autoFocus value={editLabel} onChange={e => setEditLabel(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && saveEdit()}
-              className="flex-1 bg-white/8 text-white rounded-lg text-sm px-3 py-1.5 focus:outline-none" />
-          ) : (
-            <button
-              onClick={() => onGoToCat(cat.key, contextSeriesName)}
-              className={`flex-1 text-left text-sm font-medium transition-colors ${cat.enabled ? 'text-white hover:text-[var(--neon)]' : 'text-white/50'}`}>
-              {cat.label}
-            </button>
-          )}
-
-          {/* Ключ */}
-          <span className="text-xs text-white/20 font-mono w-36 truncate flex-shrink-0">{cat.key}</span>
-
-          {/* Действия */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Название */}
             {editIdx === i ? (
-              <>
-                <button onClick={saveEdit} className="text-[var(--neon)] hover:opacity-70 p-1 transition-opacity"><Icon name="Check" size={15} /></button>
-                <button onClick={() => setEditIdx(null)} className="text-white/30 hover:text-white p-1 transition-colors"><Icon name="X" size={15} /></button>
-              </>
+              <input autoFocus value={editLabel} onChange={e => setEditLabel(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveEdit()}
+                className="flex-1 bg-[#1e1e2e] text-white rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 border border-white/10" />
             ) : (
-              <>
-                <button onClick={() => onGoToCat(cat.key, contextSeriesName)}
-                  className="text-white/20 hover:text-[var(--neon)] p-1 transition-colors opacity-0 group-hover:opacity-100">
-                  <Icon name="ArrowRight" size={14} />
-                </button>
-                <button onClick={() => startEdit(i)} className="text-white/20 hover:text-white p-1 transition-colors"><Icon name="Pencil" size={14} /></button>
-                <button onClick={() => toggle(i)}
-                  className={`p-1 transition-colors ${cat.enabled ? 'text-white/20 hover:text-amber-400' : 'text-white/20 hover:text-green-400'}`}>
-                  <Icon name={cat.enabled ? 'EyeOff' : 'Eye'} size={14} />
-                </button>
-              </>
+              <button onClick={() => onGoToCat(cat.key, contextSeriesName)}
+                className={`flex-1 text-left text-sm font-medium transition-colors ${cat.enabled ? 'text-white hover:text-[var(--neon)]' : 'text-white/50'}`}>
+                {cat.label}
+              </button>
             )}
+
+            {/* Ключ */}
+            <span className="text-xs text-white/20 font-mono w-36 truncate flex-shrink-0 hidden sm:block">{cat.key}</span>
+
+            {/* Действия */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {editIdx === i ? (
+                <>
+                  <button onClick={saveEdit} className="text-[var(--neon)] hover:opacity-70 p-1 transition-opacity"><Icon name="Check" size={15} /></button>
+                  <button onClick={() => setEditIdx(null)} className="text-white/30 hover:text-white p-1 transition-colors"><Icon name="X" size={15} /></button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => onGoToCat(cat.key, contextSeriesName)}
+                    className="text-white/20 hover:text-[var(--neon)] p-1 transition-colors opacity-0 group-hover:opacity-100">
+                    <Icon name="ArrowRight" size={14} />
+                  </button>
+                  <button onClick={() => startEdit(i)} className="text-white/20 hover:text-white p-1 transition-colors"><Icon name="Pencil" size={14} /></button>
+                  <button onClick={() => toggle(i)}
+                    className={`p-1 transition-colors ${cat.enabled ? 'text-white/20 hover:text-amber-400' : 'text-white/20 hover:text-green-400'}`}>
+                    <Icon name={cat.enabled ? 'EyeOff' : 'Eye'} size={14} />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
+
+          {/* Форма редактирования (разворачивается под строкой) */}
+          {editIdx === i && (
+            <div className="ml-13 mb-3 pl-10 flex gap-2">
+              <div className="flex flex-col gap-1 flex-shrink-0">
+                <span className="text-[10px] text-white/30 uppercase tracking-wide">Иконка</span>
+                <input value={editEmoji} onChange={e => setEditEmoji(e.target.value)}
+                  placeholder="😀"
+                  className="w-14 text-center bg-[#1e1e2e] text-white rounded-lg text-xl px-1 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 border border-white/10" />
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <span className="text-[10px] text-white/30 uppercase tracking-wide">URL картинки (опционально)</span>
+                <input
+                  placeholder="https://... или оставьте пустым"
+                  className="w-full bg-[#1e1e2e] text-white rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 border border-white/10 placeholder:text-white/20" />
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>
