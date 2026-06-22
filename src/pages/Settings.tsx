@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminScreensTab from '@/components/AdminScreensTab';
 import Icon from '@/components/ui/icon';
 import { getSupplierSystems, saveSupplierSystem, getCatalogHierarchy, addProduct, updateProductPrice, deleteProduct } from '@/lib/api';
 
-// ─── Типы ────────────────────────────────────────────────────────────────────
 const ALL_MOUNT_TYPES = [
   { id: 'surface',  label: 'Универсальные'    },
   { id: 'harpoon',  label: 'Гарпунные'        },
@@ -19,28 +18,34 @@ const CATEGORY_OPTIONS = [
   { value: 'connector_angle',    label: 'Соединители угловые' },
   { value: 'connector_flexible', label: 'Соединители гибкие'  },
   { value: 'end_cap',            label: 'Заглушки'            },
-  { value: 'mount',              label: 'Крепёж / подвесы'   },
-  { value: 'power_inlet',        label: 'Токовводы'          },
+  { value: 'mount',              label: 'Крепёж / подвесы'    },
+  { value: 'power_inlet',        label: 'Токовводы'           },
   { value: 'driver',             label: 'Блоки питания'       },
-  { value: 'controller',         label: 'Контроллеры'        },
+  { value: 'controller',         label: 'Контроллеры'         },
   { value: 'base',               label: 'Базы / адаптеры'     },
-  { value: 'accessory',          label: 'Аксессуары'         },
+  { value: 'accessory',          label: 'Аксессуары'          },
 ];
+
+// Иконки категорий (эмодзи как плейсхолдеры)
+const CAT_EMOJI: Record<string, string> = {
+  track: '📏', head: '💡', connector_straight: '➡️', connector_angle: '↩️',
+  connector_flexible: '〰️', end_cap: '🔲', mount: '🔗', power_inlet: '🔌',
+  driver: '⚡', controller: '🎛️', base: '🔧', accessory: '📦',
+};
 
 type SystemDef = { name: string; types: string[]; voltage: string; wires: string };
 type SupplierDef = { code: string; name: string; color: string; logo: string; status: string; statusLabel: string; statusColor: string; systems: SystemDef[] };
-
 interface Product  { id: number; article: string; name: string; category: string; voltage: number | null; unit: string; obsolete: boolean; price: number | null; stock_qty: number | null }
 interface Category { key: string; label: string; products: Product[] }
 interface Series   { id: number; name: string; voltage: number | null; product_count: number; categories: Category[] }
 interface Supplier { id: number; code: string; name: string; series: Series[] }
 
 const SUPPLIER_COLORS: Record<string, string> = { arlight: '#3d5afe' };
+const ARLIGHT_LOGO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/67102236-293c-4925-b47f-e13686e93b7e.jpg';
 
 const SUPPLIERS_DEFAULT: SupplierDef[] = [
   {
-    code: 'arlight', name: 'Arlight', color: '#3d5afe',
-    logo: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/67102236-293c-4925-b47f-e13686e93b7e.jpg',
+    code: 'arlight', name: 'Arlight', color: '#3d5afe', logo: ARLIGHT_LOGO,
     status: 'waiting', statusLabel: 'Ожидает доступ из ЛК', statusColor: '#f59e0b',
     systems: [
       { name: 'TRACK-4TR (220В)', types: ['surface', 'harpoon'],  voltage: '220В', wires: '4-проводная' },
@@ -51,13 +56,13 @@ const SUPPLIERS_DEFAULT: SupplierDef[] = [
 ];
 
 const TABS = [
-  { key: 'screens',    label: 'Экраны',          icon: 'Image'     },
-  { key: 'suppliers',  label: 'Поставщики',  icon: 'Building2' },
-  { key: 'categories', label: 'Системы',     icon: 'Layers'    },
-  { key: 'products',   label: 'Товары',      icon: 'Package'   },
+  { key: 'screens',    label: 'Экраны',     icon: 'Image'     },
+  { key: 'suppliers',  label: 'Поставщики', icon: 'Building2' },
+  { key: 'categories', label: 'Системы',    icon: 'Layers'    },
+  { key: 'products',   label: 'Товары',     icon: 'Package'   },
 ];
 
-// ─── Вкладка Поставщики ───────────────────────────────────────────────────────
+// ─── Поставщики ───────────────────────────────────────────────────────────────
 function SuppliersTab() {
   const [suppliers, setSuppliers] = useState<SupplierDef[]>(SUPPLIERS_DEFAULT);
   const [loading, setLoading] = useState(true);
@@ -95,60 +100,56 @@ function SuppliersTab() {
     });
   };
 
-  if (loading) return <div className="text-center py-12 text-white/30 text-sm animate-pulse">Загружаю настройки...</div>;
+  if (loading) return <div className="text-center py-16 text-white/20 text-sm animate-pulse">Загружаю...</div>;
 
   return (
-    <div className="space-y-4">
-      <div className="pro-card p-4 flex items-start gap-3">
-        <Icon name="Info" size={14} className="text-[var(--neon)] flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-white/60 leading-relaxed">
-          На шаге 5 клиент видит <strong className="text-white">все системы всех поставщиков</strong> для выбранного типа установки. Отметь галочками — какая система поддерживает какой тип монтажа.
-        </div>
-      </div>
-
+    <div>
       {suppliers.map(s => (
-        <div key={s.code} className="pro-card overflow-hidden">
-          <div className="flex items-center gap-4 p-4 border-b border-[var(--border)]" style={{ background: `linear-gradient(135deg, ${s.color}10, transparent)` }}>
-            <div className="w-12 h-12 rounded-xl overflow-hidden border border-[var(--border)] flex-shrink-0">
-              <img src={s.logo} alt={s.name} className="w-full h-full object-cover" />
-            </div>
+        <div key={s.code}>
+          {/* Шапка поставщика */}
+          <div className="flex items-center gap-5 py-6 border-b border-white/8">
+            <img src={s.logo} alt={s.name} className="w-20 h-20 rounded-2xl object-cover flex-shrink-0" />
             <div className="flex-1">
-              <div className="font-black text-white text-base">{s.name}</div>
-              <div className="text-xs text-white/40 mt-0.5">{s.systems.length} системы в каталоге</div>
+              <div className="text-2xl font-black text-white">{s.name}</div>
+              <div className="text-sm text-white/40 mt-1">{s.systems.length} системы в каталоге</div>
             </div>
-            <span className="text-[10px] px-2.5 py-1 rounded-full font-bold" style={{ backgroundColor: `${s.statusColor}22`, color: s.statusColor, border: `1px solid ${s.statusColor}44` }}>
+            <span className="text-xs px-3 py-1.5 rounded-full font-bold" style={{ backgroundColor: `${s.statusColor}20`, color: s.statusColor }}>
               {s.statusLabel}
             </span>
           </div>
 
-          <div className="divide-y divide-[var(--border)]">
-            {s.systems.map((sys, sysIdx) => (
-              <div key={sysIdx} className="px-4 py-4">
-                <div className="font-bold text-sm text-white mb-3">{sys.name}</div>
-                <div className="flex flex-wrap gap-2">
-                  {ALL_MOUNT_TYPES.map(mt => {
-                    const active = sys.types.includes(mt.id);
-                    return (
-                      <button key={mt.id} onClick={() => toggleType(s.code, sysIdx, mt.id)}
-                        className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border font-medium transition-all ${
-                          active ? 'border-[var(--neon)] bg-[var(--neon)]/10 text-[var(--neon)]' : 'border-[var(--border)] text-white/30 hover:text-white/60 hover:border-white/30'
-                        }`}>
-                        <div className={`w-3 h-3 rounded-sm border flex items-center justify-center flex-shrink-0 transition-all ${active ? 'border-[var(--neon)] bg-[var(--neon)]' : 'border-white/20'}`}>
-                          {active && <Icon name="Check" size={8} className="text-white" />}
-                        </div>
-                        {mt.label}
-                      </button>
-                    );
-                  })}
-                </div>
+          {/* Системы */}
+          {s.systems.map((sys, sysIdx) => (
+            <div key={sysIdx} className="py-5 border-b border-white/5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="text-base font-bold text-white">{sys.name}</div>
+                <span className="text-xs px-2 py-0.5 rounded font-semibold text-[var(--neon)] bg-[var(--neon)]/10">{sys.voltage}</span>
               </div>
-            ))}
-          </div>
+              <div className="flex flex-wrap gap-2">
+                {ALL_MOUNT_TYPES.map(mt => {
+                  const active = sys.types.includes(mt.id);
+                  return (
+                    <button key={mt.id} onClick={() => toggleType(s.code, sysIdx, mt.id)}
+                      className={`flex items-center gap-2 text-sm px-4 py-2 rounded-xl font-medium transition-all ${
+                        active
+                          ? 'bg-[var(--neon)]/15 text-[var(--neon)] border border-[var(--neon)]/40'
+                          : 'bg-white/5 text-white/35 border border-transparent hover:text-white/60 hover:bg-white/8'
+                      }`}>
+                      <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all ${active ? 'bg-[var(--neon)]' : 'bg-white/10'}`}>
+                        {active && <Icon name="Check" size={10} className="text-white" />}
+                      </div>
+                      {mt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
 
           {s.status === 'waiting' && (
-            <div className="px-4 py-3 bg-amber-500/5 border-t border-amber-500/20 flex items-center gap-2">
-              <Icon name="Clock" size={13} className="text-amber-400 flex-shrink-0" />
-              <span className="text-[11px] text-amber-400/80">Ожидаем доступ из ЛК. После получения — загрузите прайс и остатки во вкладке «Товары».</span>
+            <div className="flex items-center gap-2 py-4 text-amber-400/70">
+              <Icon name="Clock" size={14} className="flex-shrink-0" />
+              <span className="text-sm">Ожидаем доступ из ЛК. После получения — загрузите прайс и остатки во вкладке «Товары».</span>
             </div>
           )}
         </div>
@@ -157,7 +158,7 @@ function SuppliersTab() {
   );
 }
 
-// ─── Вкладка Системы ─────────────────────────────────────────────────────────
+// ─── Системы ─────────────────────────────────────────────────────────────────
 function SystemsTab({ onDrillDown }: { onDrillDown: (supplierId: number, seriesId: number) => void }) {
   const [catalog, setCatalog] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -166,41 +167,37 @@ function SystemsTab({ onDrillDown }: { onDrillDown: (supplierId: number, seriesI
     getCatalogHierarchy().then(d => { setCatalog(d); setLoading(false); });
   }, []);
 
-  if (loading) return <div className="text-center py-12 text-white/30 text-sm animate-pulse">Загружаю...</div>;
+  if (loading) return <div className="text-center py-16 text-white/20 text-sm animate-pulse">Загружаю...</div>;
 
   return (
-    <div className="space-y-4">
-      <div className="pro-card p-4 flex items-start gap-3">
-        <Icon name="Info" size={14} className="text-[var(--neon)] flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-white/60 leading-relaxed">
-          Выбери систему чтобы перейти к её товарам.
-        </div>
-      </div>
-
+    <div>
       {catalog.map(sup => (
-        <div key={sup.id} className="pro-card overflow-hidden">
+        <div key={sup.id}>
           {/* Шапка поставщика */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)]"
-            style={{ background: `linear-gradient(135deg, ${SUPPLIER_COLORS[sup.code] ?? '#fff'}12, transparent)` }}>
-            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: SUPPLIER_COLORS[sup.code] ?? '#fff' }} />
-            <span className="font-black text-white text-sm">{sup.name}</span>
-            <span className="text-[10px] text-white/30 ml-1">{sup.series.reduce((s, sr) => s + sr.product_count, 0)} товаров</span>
+          <div className="flex items-center gap-5 py-6 border-b border-white/8">
+            <img src={ARLIGHT_LOGO} alt={sup.name} className="w-20 h-20 rounded-2xl object-cover flex-shrink-0" />
+            <div>
+              <div className="text-2xl font-black text-white">{sup.name}</div>
+              <div className="text-sm text-white/40 mt-1">{sup.series.reduce((s, sr) => s + sr.product_count, 0)} товаров</div>
+            </div>
           </div>
 
-          {/* Системы — кликабельные строки */}
-          <div className="divide-y divide-[var(--border)]">
+          {/* Системы */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-6">
             {sup.series.map(series => (
-              <button key={series.id}
-                onClick={() => onDrillDown(sup.id, series.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--neon)]/5 hover:border-l-2 hover:border-[var(--neon)] transition-all text-left group">
-                <span className="font-bold text-sm text-white group-hover:text-[var(--neon)] transition-colors">{series.name}</span>
-                {series.voltage && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: `${SUPPLIER_COLORS[sup.code]}22`, color: SUPPLIER_COLORS[sup.code] }}>
-                    {series.voltage}В
-                  </span>
-                )}
-                <span className="ml-auto text-[10px] text-white/30">{series.product_count} поз.</span>
-                <Icon name="ChevronRight" size={14} className="text-white/20 group-hover:text-[var(--neon)] transition-colors flex-shrink-0" />
+              <button key={series.id} onClick={() => onDrillDown(sup.id, series.id)}
+                className="group text-left p-5 rounded-2xl bg-white/4 hover:bg-[var(--neon)]/10 border border-white/6 hover:border-[var(--neon)]/30 transition-all">
+                <div className="text-3xl mb-3">🔆</div>
+                <div className="font-bold text-white text-base group-hover:text-[var(--neon)] transition-colors">{series.name}</div>
+                <div className="flex items-center gap-2 mt-2">
+                  {series.voltage && (
+                    <span className="text-xs px-2 py-0.5 rounded font-semibold text-[var(--neon)] bg-[var(--neon)]/10">{series.voltage}В</span>
+                  )}
+                  <span className="text-xs text-white/30">{series.product_count} поз.</span>
+                </div>
+                <div className="mt-3 text-white/25 text-xs group-hover:text-[var(--neon)]/60 transition-colors flex items-center gap-1">
+                  Открыть товары <Icon name="ArrowRight" size={11} />
+                </div>
               </button>
             ))}
           </div>
@@ -210,7 +207,7 @@ function SystemsTab({ onDrillDown }: { onDrillDown: (supplierId: number, seriesI
   );
 }
 
-// ─── Вкладка Товары ───────────────────────────────────────────────────────────
+// ─── Товары ───────────────────────────────────────────────────────────────────
 function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
   const [catalog, setCatalog] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -220,12 +217,14 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
   const [addingForm, setAddingForm] = useState(false);
   const [form, setForm] = useState({ article: '', name: '', category: 'track', voltage: '', unit: 'шт', price: '' });
   const [saving, setSaving] = useState(false);
+  const [editingPrice, setEditingPrice] = useState<number | null>(null);
+  const [priceVal, setPriceVal] = useState('');
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const load = () => {
     setLoading(true);
     getCatalogHierarchy().then(d => {
       setCatalog(d);
-      // Автовыбор поставщика если пришли из вкладки Системы
       if (initSeriesId) {
         const sup = d.find((s: Supplier) => s.series.some((sr: Series) => sr.id === initSeriesId));
         if (sup) setSelectedSup(sup.id);
@@ -249,48 +248,41 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
     load();
   };
 
-  const handleDelete = async (id: number) => {
-    await deleteProduct(id);
-    load();
-  };
+  const handleDelete = async (id: number) => { await deleteProduct(id); load(); };
+  const savePrice = async (id: number) => { await updateProductPrice(id, Number(priceVal)); setEditingPrice(null); load(); };
 
-  const [editingPrice, setEditingPrice] = useState<number | null>(null);
-  const [priceVal, setPriceVal] = useState('');
-  const savePrice = async (id: number) => {
-    await updateProductPrice(id, Number(priceVal));
-    setEditingPrice(null);
-    load();
-  };
+  const inp = "bg-white/6 border-0 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50 placeholder:text-white/25 w-full";
 
-  if (loading) return <div className="text-center py-12 text-white/30 text-sm animate-pulse">Загружаю...</div>;
-
-  const inputCls = "bg-[var(--bg-primary)] border border-[var(--border)] text-white rounded-lg text-xs px-2 py-1.5 focus:outline-none focus:border-[var(--neon)] placeholder:text-white/25";
+  if (loading) return <div className="text-center py-16 text-white/20 text-sm animate-pulse">Загружаю...</div>;
 
   return (
-    <div className="space-y-3">
-      {/* Навигация: поставщик → серия → категория */}
-      <div className="flex flex-wrap gap-2">
-        {/* Поставщики */}
-        <div className="flex gap-1.5">
-          {catalog.map(sup => (
-            <button key={sup.id}
-              onClick={() => { setSelectedSup(sup.id); setSelectedSeries(null); setSelectedCat(null); }}
-              className={`text-xs px-3 py-1.5 rounded-lg border font-semibold transition-all ${selectedSup === sup.id ? 'border-[var(--neon)] bg-[var(--neon)]/10 text-[var(--neon)]' : 'border-[var(--border)] text-white/40 hover:text-white/70'}`}>
-              {sup.name}
-            </button>
-          ))}
-        </div>
+    <div className="space-y-4">
+
+      {/* Поставщики */}
+      <div className="flex gap-2">
+        {catalog.map(sup => (
+          <button key={sup.id}
+            onClick={() => { setSelectedSup(sup.id); setSelectedSeries(null); setSelectedCat(null); }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+              selectedSup === sup.id ? 'bg-[var(--neon)] text-white' : 'bg-white/6 text-white/50 hover:text-white hover:bg-white/10'
+            }`}>
+            <img src={ARLIGHT_LOGO} alt="" className="w-5 h-5 rounded object-cover" />
+            {sup.name}
+          </button>
+        ))}
       </div>
 
-      {/* Серии */}
+      {/* Системы */}
       {selectedSup && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {catalog.find(s => s.id === selectedSup)?.series.map(sr => (
             <button key={sr.id}
               onClick={() => { setSelectedSeries(sr.id); setSelectedCat(null); }}
-              className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${selectedSeries === sr.id ? 'border-[var(--neon)] bg-[var(--neon)]/10 text-[var(--neon)]' : 'border-[var(--border)] text-white/30 hover:text-white/60'}`}>
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                selectedSeries === sr.id ? 'bg-white/15 text-white border border-white/20' : 'bg-white/4 text-white/40 hover:text-white/70 hover:bg-white/8'
+              }`}>
               {sr.name}
-              <span className="ml-1.5 text-[10px] opacity-60">{sr.product_count}</span>
+              <span className="ml-2 text-xs opacity-50">{sr.product_count}</span>
             </button>
           ))}
         </div>
@@ -298,91 +290,93 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
 
       {/* Категории */}
       {selectedSeries && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {currentSeries?.categories.map(cat => (
             <button key={cat.key}
               onClick={() => setSelectedCat(cat.key)}
-              className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${selectedCat === cat.key ? 'border-[var(--neon)] bg-[var(--neon)]/10 text-[var(--neon)]' : 'border-[var(--border)] text-white/30 hover:text-white/60'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                selectedCat === cat.key ? 'bg-white/15 text-white' : 'bg-white/4 text-white/40 hover:text-white/70 hover:bg-white/7'
+              }`}>
+              <span>{CAT_EMOJI[cat.key] ?? '📦'}</span>
               {cat.label}
-              <span className="ml-1.5 text-[10px] opacity-60">{cat.products.length}</span>
+              <span className="text-xs opacity-50">{cat.products.length}</span>
             </button>
           ))}
         </div>
       )}
 
-      {/* Товары */}
+      {/* Таблица товаров */}
       {selectedCat && (
-        <div className="pro-card overflow-hidden">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-            <Icon name="Package" size={13} className="text-[var(--neon)]" />
-            <span className="text-xs font-bold text-white">{currentCat?.label}</span>
-            <span className="text-[10px] text-white/30">{products.length} позиций</span>
+        <div>
+          {/* Заголовок */}
+          <div className="flex items-center gap-3 py-4 border-b border-white/8">
+            <span className="text-xl">{CAT_EMOJI[selectedCat] ?? '📦'}</span>
+            <span className="text-lg font-bold text-white">{currentCat?.label}</span>
+            <span className="text-sm text-white/30">{products.length} позиций</span>
             <button onClick={() => setAddingForm(p => !p)}
-              className="ml-auto flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-white/40 hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all">
-              <Icon name="Plus" size={11} /> Добавить
+              className="ml-auto flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl bg-[var(--neon)]/15 text-[var(--neon)] hover:bg-[var(--neon)]/25 transition-all font-medium">
+              <Icon name="Plus" size={14} /> Добавить
             </button>
           </div>
 
           {/* Форма добавления */}
           {addingForm && (
-            <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--neon)]/5 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <input value={form.article} onChange={e => setForm(p => ({...p, article: e.target.value}))} placeholder="Артикул *" className={inputCls} />
-                <input value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder="Название *" className={inputCls} />
-                <select value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))} className={inputCls}>
-                  {CATEGORY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-                <div className="flex gap-1.5">
-                  <input value={form.voltage} onChange={e => setForm(p => ({...p, voltage: e.target.value}))} placeholder="В" className={`${inputCls} w-16`} />
-                  <input value={form.unit} onChange={e => setForm(p => ({...p, unit: e.target.value}))} placeholder="ед." className={`${inputCls} w-16`} />
-                  <input value={form.price} onChange={e => setForm(p => ({...p, price: e.target.value}))} placeholder="Цена ₽" className={`${inputCls} flex-1`} />
-                </div>
-              </div>
+            <div className="py-4 border-b border-white/8 grid grid-cols-2 gap-3">
+              <input value={form.article} onChange={e => setForm(p => ({...p, article: e.target.value}))} placeholder="Артикул *" className={inp} />
+              <input value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder="Название *" className={inp} />
+              <select value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))} className={inp + ' col-span-1'}>
+                {CATEGORY_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-[#111]">{o.label}</option>)}
+              </select>
               <div className="flex gap-2">
+                <input value={form.voltage} onChange={e => setForm(p => ({...p, voltage: e.target.value}))} placeholder="В" className="bg-white/6 border-0 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50 placeholder:text-white/25 w-20" />
+                <input value={form.unit} onChange={e => setForm(p => ({...p, unit: e.target.value}))} placeholder="ед." className="bg-white/6 border-0 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50 placeholder:text-white/25 w-20" />
+                <input value={form.price} onChange={e => setForm(p => ({...p, price: e.target.value}))} placeholder="Цена ₽" className="bg-white/6 border-0 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50 placeholder:text-white/25 flex-1" />
+              </div>
+              <div className="col-span-2 flex gap-2">
                 <button onClick={handleAdd} disabled={saving || !form.article || !form.name}
-                  className="neon-btn text-white text-xs px-4 py-1.5 rounded-lg font-semibold disabled:opacity-40">
-                  {saving ? 'Сохраняю...' : 'Добавить'}
+                  className="neon-btn text-white text-sm px-5 py-2 rounded-xl font-semibold disabled:opacity-40">
+                  {saving ? 'Сохраняю...' : 'Добавить товар'}
                 </button>
-                <button onClick={() => setAddingForm(false)} className="text-white/30 text-xs hover:text-white px-2 transition-colors">Отмена</button>
+                <button onClick={() => setAddingForm(false)} className="text-white/30 text-sm hover:text-white px-3 transition-colors">Отмена</button>
               </div>
             </div>
           )}
 
           {/* Шапка таблицы */}
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-            <span className="text-[10px] text-white/30 w-28">Артикул</span>
-            <span className="text-[10px] text-white/30 flex-1">Название</span>
-            <span className="text-[10px] text-white/30 w-8 text-right">Ед.</span>
-            <span className="text-[10px] text-white/30 w-24 text-right">Цена</span>
+          <div className="flex items-center gap-4 py-2.5 text-xs text-white/25 uppercase tracking-wider">
+            <span className="w-36 flex-shrink-0">Артикул</span>
+            <span className="flex-1">Название</span>
+            <span className="w-10 text-right">Ед.</span>
+            <span className="w-28 text-right">Цена</span>
             <span className="w-6" />
           </div>
 
           {products.length === 0 && (
-            <div className="text-center py-8 text-white/25 text-xs">Нет товаров в этой категории</div>
+            <div className="py-12 text-center text-white/20 text-sm">Нет товаров в этой категории</div>
           )}
 
           {products.map(p => (
-            <div key={p.id} className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]/50 last:border-0 hover:bg-white/2 group text-xs">
-              <span className="font-mono text-white/40 w-28 flex-shrink-0 truncate">{p.article}</span>
-              <span className="flex-1 text-white/80 truncate">{p.name}</span>
-              <span className="text-white/30 w-8 text-right flex-shrink-0">{p.unit}</span>
+            <div key={p.id} className="flex items-center gap-4 py-3 border-t border-white/5 group hover:bg-white/2 rounded-lg -mx-2 px-2 transition-colors">
+              <span className="font-mono text-white/35 text-xs w-36 flex-shrink-0 truncate">{p.article}</span>
+              <span className="flex-1 text-white text-sm truncate">{p.name}</span>
+              <span className="text-white/30 text-xs w-10 text-right flex-shrink-0">{p.unit}</span>
               {editingPrice === p.id ? (
-                <div className="flex items-center gap-1 w-24 justify-end">
+                <div className="flex items-center gap-1.5 w-28 justify-end">
                   <input autoFocus value={priceVal} onChange={e => setPriceVal(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && savePrice(p.id)}
-                    className="w-16 bg-[var(--bg-primary)] border border-[var(--neon)]/50 text-white text-xs px-2 py-0.5 rounded focus:outline-none" />
-                  <button onClick={() => savePrice(p.id)} className="text-[var(--neon)]"><Icon name="Check" size={12} /></button>
-                  <button onClick={() => setEditingPrice(null)} className="text-white/30"><Icon name="X" size={12} /></button>
+                    className="w-20 bg-white/10 text-white text-sm px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50" />
+                  <button onClick={() => savePrice(p.id)} className="text-[var(--neon)] hover:opacity-70"><Icon name="Check" size={14} /></button>
+                  <button onClick={() => setEditingPrice(null)} className="text-white/20 hover:text-white"><Icon name="X" size={14} /></button>
                 </div>
               ) : (
                 <button onClick={() => { setEditingPrice(p.id); setPriceVal(String(p.price ?? '')); }}
-                  className="w-24 text-right text-white/60 hover:text-[var(--neon)] transition-colors">
-                  {p.price != null ? `${p.price.toLocaleString('ru')} ₽` : <span className="text-white/20">— ₽</span>}
+                  className="w-28 text-right font-semibold text-white hover:text-[var(--neon)] transition-colors text-sm">
+                  {p.price != null ? `${p.price.toLocaleString('ru')} ₽` : <span className="text-white/20 font-normal">— ₽</span>}
                 </button>
               )}
               <button onClick={() => handleDelete(p.id)}
-                className="w-6 opacity-0 group-hover:opacity-100 text-red-400/60 hover:text-red-400 transition-all flex-shrink-0 text-right">
-                <Icon name="Trash2" size={12} />
+                className="w-6 opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 transition-all flex-shrink-0">
+                <Icon name="Trash2" size={14} />
               </button>
             </div>
           ))}
@@ -390,16 +384,18 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
       )}
 
       {!selectedSup && (
-        <div className="pro-card p-10 text-center">
-          <Icon name="Package" size={32} className="mx-auto mb-3 text-white/20" />
-          <div className="text-sm text-white/40">Выбери поставщика, затем систему и категорию</div>
+        <div className="py-20 text-center">
+          <div className="text-5xl mb-4">📦</div>
+          <div className="text-white/30 text-sm">Выбери поставщика, систему и категорию</div>
         </div>
       )}
+
+      <input ref={fileRef} type="file" accept=".json" className="hidden" />
     </div>
   );
 }
 
-// ─── Главная страница Settings ────────────────────────────────────────────────
+// ─── Главная ──────────────────────────────────────────────────────────────────
 export default function Settings() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<'screens' | 'suppliers' | 'categories' | 'products'>('screens');
@@ -412,32 +408,27 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
-      <header className="flex items-center gap-4 px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-secondary)] sticky top-0 z-40">
-        <button onClick={() => navigate('/')} className="flex items-center gap-2 text-sm text-white/50 hover:text-[var(--neon)] transition-colors">
+      <header className="flex items-center gap-4 px-8 py-5 border-b border-white/6 sticky top-0 z-40 bg-[var(--bg-primary)]/95 backdrop-blur-sm">
+        <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm">
           <Icon name="ArrowLeft" size={16} /> Назад
         </button>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[var(--neon)] flex items-center justify-center shadow-[0_0_12px_var(--neon-glow)]">
-            <Icon name="Settings" size={14} className="text-white" />
-          </div>
-          <span className="text-base font-black text-white">Настройки</span>
-        </div>
-      </header>
+        <span className="text-lg font-black text-white">Настройки</span>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* Вкладки */}
-        <div className="flex gap-1 mb-6 bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--border)]">
+        {/* Табы в хедере */}
+        <div className="ml-8 flex gap-1 bg-white/5 p-1 rounded-2xl">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key as typeof tab)}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                tab === t.key ? 'bg-[var(--neon)] text-white shadow-[0_0_12px_var(--neon-glow)]' : 'text-white/40 hover:text-white/70'
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                tab === t.key ? 'bg-[var(--neon)] text-white shadow-[0_0_16px_rgba(61,90,254,0.4)]' : 'text-white/40 hover:text-white/70'
               }`}>
-              <Icon name={t.icon as Parameters<typeof Icon>[0]['name']} size={12} />
-              <span className="hidden sm:inline">{t.label}</span>
+              <Icon name={t.icon as Parameters<typeof Icon>[0]['name']} size={14} />
+              {t.label}
             </button>
           ))}
         </div>
+      </header>
 
+      <div className="max-w-3xl mx-auto px-8 py-8">
         {tab === 'screens'    && <AdminScreensTab />}
         {tab === 'suppliers'  && <SuppliersTab />}
         {tab === 'categories' && <SystemsTab onDrillDown={handleDrillDown} />}
