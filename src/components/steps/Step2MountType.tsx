@@ -23,7 +23,7 @@ const DEFAULTS: Record<string, string> = {
 
 export default function Step2MountType({ state, next, back, totalSteps }: Props) {
   const [mount, setMount] = useState<MountType | null>(state.mountType);
-  const { images, setImage } = usePersistedImages('step2', DEFAULTS);
+  const { images, setImage, ready } = usePersistedImages('step2', DEFAULTS);
 
   const handleSelect = (id: MountType) => {
     setMount(id);
@@ -44,7 +44,12 @@ export default function Step2MountType({ state, next, back, totalSteps }: Props)
           <p className="text-sm text-[var(--text-muted)] mt-1">Наведите на карточку, чтобы заменить фото</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {!ready && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <div key={i} className="h-52 rounded-2xl bg-white/5 animate-pulse" />)}
+          </div>
+        )}
+        <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 ${!ready ? 'hidden' : ''}`}>
           {TYPES.map(t => (
             <div
               key={t.id}
@@ -66,11 +71,7 @@ export default function Step2MountType({ state, next, back, totalSteps }: Props)
                   imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onReplace={url => setImage(t.id, url)}
                 />
-                {mount === t.id && (
-                  <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-[var(--neon)] flex items-center justify-center shadow-[0_0_10px_var(--neon-glow)] pointer-events-none">
-                    <Icon name="Check" size={12} className="text-white" />
-                  </div>
-                )}
+
               </div>
               {/* Нижний блок */}
               <div

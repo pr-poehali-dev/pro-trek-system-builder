@@ -3,6 +3,7 @@ import { getCardImages, saveCardImage } from '@/lib/api';
 
 export function usePersistedImages(key: string, defaults: Record<string, string>) {
   const [images, setImages] = useState<Record<string, string>>(defaults);
+  const [ready, setReady] = useState(false);
   const loaded = useRef(false);
 
   useEffect(() => {
@@ -12,6 +13,9 @@ export function usePersistedImages(key: string, defaults: Record<string, string>
       if (Object.keys(serverImages).length > 0) {
         setImages(prev => ({ ...prev, ...serverImages }));
       }
+      setReady(true);
+    }).catch(() => {
+      setReady(true);
     });
   }, [key]);
 
@@ -23,5 +27,5 @@ export function usePersistedImages(key: string, defaults: Record<string, string>
     } catch (e) { void e; }
   };
 
-  return { images, setImage };
+  return { images, setImage, ready };
 }

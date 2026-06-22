@@ -18,7 +18,7 @@ const CATEGORIES = [
 ];
 
 export default function Step1Start({ next, totalSteps }: Props) {
-  const { images, setImage } = usePersistedImages('step1', DEFAULTS);
+  const { images, setImage, ready } = usePersistedImages('step1', DEFAULTS);
   const [hovered, setHovered] = useState<string | null>(null);
 
   const handleSelect = (id: string, available: boolean) => {
@@ -36,7 +36,12 @@ export default function Step1Start({ next, totalSteps }: Props) {
           <p className="text-sm text-[var(--text-muted)] mt-1.5">Что будем подбирать?</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {!ready && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[1,2].map(i => <div key={i} className="h-64 rounded-2xl bg-white/5 animate-pulse" />)}
+          </div>
+        )}
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 ${!ready ? 'hidden' : ''}`}>
           {CATEGORIES.map(cat => {
             const isHovered = hovered === cat.id;
             return (

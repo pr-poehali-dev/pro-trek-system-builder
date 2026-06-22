@@ -122,7 +122,7 @@ function AddShapeModal({ shape, photo, onAdd, onClose, onReplacePhoto }: {
 
 export default function Step3Constructor({ state, update, next, back, totalSteps }: Props) {
   const [activeShape, setActiveShape] = useState<ShapeType | null>(null);
-  const { images: shapePhotos, setImage: setShapePhoto } = usePersistedImages('step3', DEFAULT_SHAPE_PHOTOS as Record<string, string>);
+  const { images: shapePhotos, setImage: setShapePhoto, ready } = usePersistedImages('step3', DEFAULT_SHAPE_PHOTOS as Record<string, string>);
 
   const handleAdd = (c: Construction) => {
     const updated = [...state.constructions, c];
@@ -150,7 +150,12 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        {!ready && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {[1,2,3,4,5].map(i => <div key={i} className="aspect-[4/3] rounded-2xl bg-white/5 animate-pulse" />)}
+          </div>
+        )}
+        <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 ${!ready ? 'hidden' : ''}`}>
           {SHAPES.map(shape => (
             <div
               key={shape}
