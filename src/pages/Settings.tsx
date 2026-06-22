@@ -58,10 +58,11 @@ const TABS = [
 const inputCls = "bg-white/6 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 placeholder:text-white/25 w-full";
 
 // ─── Поставщики (с раскрывающимися системами) ─────────────────────────────────
-function SuppliersTab() {
+function SuppliersTab({ onGoToProducts }: { onGoToProducts: (seriesName: string) => void }) {
   const [suppliers, setSuppliers] = useState<SupplierDef[]>(SUPPLIERS_DEFAULT);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<Record<string, boolean>>({ arlight: true });
+  const [dropOpen, setDropOpen] = useState<string | null>(null); // `${supplierCode}-${sysIdx}`
 
   useEffect(() => {
     getSupplierSystems().then(data => {
@@ -118,33 +119,67 @@ function SuppliersTab() {
 
           {/* Системы */}
           {open[s.code] && (
-            <div className="ml-14 mb-2 space-y-px">
-              {s.systems.map((sys, idx) => (
-                <div key={idx} className="flex items-center gap-3 py-3 border-t border-white/5 first:border-0">
-                  {/* Название + вольтаж — в одну строку */}
-                  <div className="flex items-center gap-2 w-52 flex-shrink-0">
-                    <span className="text-sm font-semibold text-white whitespace-nowrap">{sys.name}</span>
-                    <span className="text-xs px-1.5 py-0.5 rounded text-[var(--neon)] bg-[var(--neon)]/10 font-semibold whitespace-nowrap">{sys.voltage}</span>
+            <div className="ml-14 mb-2">
+              {s.systems.map((sys, idx) => {
+                const dropKey = `${s.code}-${idx}`;
+                const isDropOpen = dropOpen === dropKey;
+                const activeTypes = ALL_MOUNT_TYPES.filter(mt => sys.types.includes(mt.id));
+                return (
+                  <div key={idx} className="flex items-center gap-3 py-3 border-t border-white/5 first:border-0">
+                    {/* Название + вольтаж */}
+                    <div className="flex items-center gap-2 w-48 flex-shrink-0">
+                      <span className="text-sm font-semibold text-white whitespace-nowrap">{sys.name}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded text-[var(--neon)] bg-[var(--neon)]/10 font-semibold whitespace-nowrap">{sys.voltage}</span>
+                    </div>
+
+                    {/* Dropdown типов монтажа */}
+                    <div className="relative flex-1">
+                      <button
+                        onClick={() => setDropOpen(isDropOpen ? null : dropKey)}
+                        className="flex items-center gap-2 w-full text-left px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/8 transition-colors"
+                      >
+                        <span className="text-xs text-white/60 flex-1 truncate">
+                          {activeTypes.length === 0
+                            ? 'Типы не выбраны'
+                            : activeTypes.map(mt => mt.label).join(', ')
+                          }
+                        </span>
+                        <span className="text-[10px] text-white/30 flex-shrink-0">{activeTypes.length}/{ALL_MOUNT_TYPES.length}</span>
+                        <Icon name={isDropOpen ? 'ChevronUp' : 'ChevronDown'} size={12} className="text-white/30 flex-shrink-0" />
+                      </button>
+
+                      {/* Выпадающий список */}
+                      {isDropOpen && (
+                        <div className="absolute top-full left-0 mt-1 z-50 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl p-1 min-w-48">
+                          {ALL_MOUNT_TYPES.map(mt => {
+                            const active = sys.types.includes(mt.id);
+                            return (
+                              <button key={mt.id}
+                                onClick={() => toggleType(s.code, idx, mt.id)}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left ${
+                                  active ? 'text-[var(--neon)] bg-[var(--neon)]/10' : 'text-white/50 hover:text-white hover:bg-white/5'
+                                }`}>
+                                <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border transition-all ${active ? 'bg-[var(--neon)] border-[var(--neon)]' : 'border-white/20'}`}>
+                                  {active && <Icon name="Check" size={10} className="text-white" />}
+                                </div>
+                                {mt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Кнопка перехода к товарам */}
+                    <button
+                      onClick={() => onGoToProducts(sys.name)}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all flex-shrink-0 whitespace-nowrap"
+                    >
+                      Товары <Icon name="ArrowRight" size={12} />
+                    </button>
                   </div>
-                  {/* Типы монтажа — в одну строку */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {ALL_MOUNT_TYPES.map(mt => {
-                      const active = sys.types.includes(mt.id);
-                      return (
-                        <button key={mt.id} onClick={() => toggleType(s.code, idx, mt.id)}
-                          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap ${
-                            active ? 'bg-[var(--neon)]/15 text-[var(--neon)]' : 'bg-white/5 text-white/35 hover:text-white/60 hover:bg-white/8'
-                          }`}>
-                          <div className={`w-3 h-3 rounded flex items-center justify-center flex-shrink-0 ${active ? 'bg-[var(--neon)]' : 'bg-white/15'}`}>
-                            {active && <Icon name="Check" size={8} className="text-white" />}
-                          </div>
-                          {mt.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               {s.status === 'waiting' && (
                 <div className="flex items-center gap-2 py-3 text-amber-400/60 text-xs border-t border-white/5">
                   <Icon name="Clock" size={12} className="flex-shrink-0" />
@@ -263,7 +298,7 @@ function CategoriesTab() {
 }
 
 // ─── Товары ───────────────────────────────────────────────────────────────────
-function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
+function ProductsTab({ initSeriesId, initSeriesName }: { initSeriesId?: number; initSeriesName?: string }) {
   const [catalog, setCatalog] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSup, setSelectedSup] = useState<number | null>(null);
@@ -279,9 +314,17 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
     setLoading(true);
     getCatalogHierarchy().then((d: Supplier[]) => {
       setCatalog(d);
+      // Автовыбор по id
       if (initSeriesId) {
         const sup = d.find(s => s.series.some(sr => sr.id === initSeriesId));
-        if (sup) setSelectedSup(sup.id);
+        if (sup) { setSelectedSup(sup.id); setSelectedSeries(initSeriesId); }
+      }
+      // Автовыбор по имени (переход из вкладки Поставщики)
+      if (initSeriesName) {
+        for (const sup of d) {
+          const sr = sup.series.find(s => s.name === initSeriesName || s.name.replace('(V)', '(В)') === initSeriesName);
+          if (sr) { setSelectedSup(sup.id); setSelectedSeries(sr.id); break; }
+        }
       }
       setLoading(false);
     });
@@ -437,10 +480,16 @@ export default function Settings() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<'screens' | 'suppliers' | 'categories' | 'products'>('screens');
   const [drillSeriesId, setDrillSeriesId] = useState<number | undefined>();
+  const [drillSeriesName, setDrillSeriesName] = useState<string | undefined>();
+
+  const goToProducts = (seriesName: string) => {
+    setDrillSeriesName(seriesName);
+    setDrillSeriesId(undefined);
+    setTab('products');
+  };
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
-      {/* Хедер с табами в одну строку */}
       <header className="flex items-center gap-6 px-8 py-4 border-b border-white/6 sticky top-0 z-40 bg-[var(--bg-primary)]/95 backdrop-blur-sm">
         <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm flex-shrink-0">
           <Icon name="ArrowLeft" size={15} /> Назад
@@ -461,9 +510,9 @@ export default function Settings() {
 
       <div className="max-w-3xl mx-auto px-8 py-8">
         {tab === 'screens'    && <AdminScreensTab />}
-        {tab === 'suppliers'  && <SuppliersTab />}
+        {tab === 'suppliers'  && <SuppliersTab onGoToProducts={goToProducts} />}
         {tab === 'categories' && <CategoriesTab />}
-        {tab === 'products'   && <ProductsTab initSeriesId={drillSeriesId} />}
+        {tab === 'products'   && <ProductsTab initSeriesId={drillSeriesId} initSeriesName={drillSeriesName} />}
       </div>
     </div>
   );
