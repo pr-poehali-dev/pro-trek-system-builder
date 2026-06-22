@@ -47,8 +47,8 @@ export default function Step5SystemSelect({ state, update, next, back, totalStep
   const [systems, setSystems] = useState<SystemOption[]>([]);
   const [logos, setLogos] = useState<Record<string, string>>({ arlight: ARLIGHT_LOGO });
   const [loading, setLoading] = useState<Record<number, boolean>>({});
-  const [selected, setSelected] = useState<string | null>(null);
   const [loadingDb, setLoadingDb] = useState(true);
+  const [filterSupplier, setFilterSupplier] = useState<string | null>(null);
 
   const constructionsPayload = state.constructions.map(c => ({ shape: c.shape, dims: c.dims }));
   const totalLength = state.constructions.reduce((s, c) => s + c.totalLength, 0);
@@ -118,19 +118,16 @@ export default function Step5SystemSelect({ state, update, next, back, totalStep
     });
   }, []);
 
+  // Клик = сразу переход дальше
   const handleSelect = (sys: SystemOption) => {
-    const key = `${sys.supplierCode}-${sys.seriesId}`;
-    setSelected(key);
-    update({ supplierCode: sys.supplierCode, voltage: sys.voltage, spec: sys.spec as never, summary: sys.summary as never, angleChoices: {} });
-  };
-
-  const handleConfirm = () => {
-    const sys = systems.find(s => `${s.supplierCode}-${s.seriesId}` === selected);
-    if (!sys) return;
     next({ supplierCode: sys.supplierCode, voltage: sys.voltage, spec: sys.spec as never, summary: sys.summary as never, angleChoices: {} });
   };
 
   const anyLoading = Object.values(loading).some(Boolean);
+
+  // Уникальные поставщики для фильтра
+  const suppliers = Array.from(new Map(systems.map(s => [s.supplierCode, { code: s.supplierCode, name: s.supplierName, logo: logos[s.supplierCode] ?? s.supplierLogo }])).values());
+  const visibleSystems = filterSupplier ? systems.filter(s => s.supplierCode === filterSupplier) : systems;
 
   return (
     <div className="animate-fadein">
@@ -160,10 +157,12 @@ export default function Step5SystemSelect({ state, update, next, back, totalStep
 
         {/* Загрузка из БД */}
         {loadingDb && (
-          <div className="text-center py-12 text-white/30 text-sm animate-pulse">Загружаю доступные системы...</div>
+          <div className="space-y-3">
+            {[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-white/5 animate-pulse" />)}
+          </div>
         )}
 
-        {/* Нет систем для выбранного типа */}
+        {/* Нет систем */}
         {!loadingDb && systems.length === 0 && (
           <div className="pro-card p-8 text-center">
             <Icon name="AlertCircle" size={32} className="mx-auto mb-3 text-amber-400/60" />
@@ -171,108 +170,89 @@ export default function Step5SystemSelect({ state, update, next, back, totalStep
           </div>
         )}
 
-        {/* Карточки систем */}
+        {/* Фильтр по поставщику */}
+        {!loadingDb && suppliers.length > 1 && (
+          <div className="flex gap-2 mb-5">
+            <button
+              onClick={() => setFilterSupplier(null)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                filterSupplier === null ? 'bg-[var(--neon)] text-white' : 'bg-white/6 text-white/50 hover:text-white hover:bg-white/10'
+              }`}>
+              Все
+            </button>
+            {suppliers.map(sup => (
+              <button key={sup.code}
+                onClick={() => setFilterSupplier(filterSupplier === sup.code ? null : sup.code)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  filterSupplier === sup.code ? 'bg-[var(--neon)] text-white' : 'bg-white/6 text-white/50 hover:text-white hover:bg-white/10'
+                }`}>
+                <img src={sup.logo} alt="" className="w-5 h-5 rounded-md object-cover" />
+                {sup.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Карточки */}
         <div className="space-y-3">
-          {systems.map((sys, idx) => {
+          {visibleSystems.map((sys) => {
             const key = `${sys.supplierCode}-${sys.seriesId}`;
-            const isSelected = selected === key;
-            const isLoading = loading[idx];
+            const isLoading = loading[systems.indexOf(sys)];
             const logoSrc = logos[sys.supplierCode] ?? sys.supplierLogo;
 
             return (
-              <div
-                key={key}
-                onClick={() => handleSelect(sys)}
-                className={`pro-card p-0 overflow-hidden cursor-pointer transition-all duration-200 ${
-                  isSelected
-                    ? 'border-[var(--neon)] shadow-[0_0_24px_var(--neon-glow)] -translate-y-0.5'
-                    : 'hover:border-[rgba(61,90,254,0.45)] hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
-                }`}
-              >
-                <div className="flex items-stretch">
+              <div key={key} onClick={() => handleSelect(sys)}
+                className="pro-card p-0 overflow-hidden cursor-pointer transition-all duration-200 hover:border-[rgba(61,90,254,0.45)] hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)] group">
+                <div className="flex items-center gap-0">
 
-                  {/* Лого-колонка */}
-                  <div
-                    className="w-24 md:w-28 flex-shrink-0 flex flex-col items-center justify-center gap-2 p-3 border-r border-[var(--border)] relative overflow-hidden"
-                    style={{ background: `linear-gradient(135deg, ${sys.supplierColor}18, ${sys.supplierColor}06)` }}
-                  >
+                  {/* Логотип — крупный, без подложки */}
+                  <div className="w-20 h-20 flex-shrink-0 flex items-center justify-center p-2 relative">
                     <ImageUpload
                       src={logoSrc}
                       alt={sys.supplierName}
-                      className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0"
+                      className="w-16 h-16 rounded-2xl overflow-hidden"
                       imgClassName="w-full h-full object-cover"
                       onReplace={url => setLogos(prev => ({ ...prev, [sys.supplierCode]: url }))}
                     />
-                    <span className="text-[9px] font-bold text-[var(--text-muted)] text-center leading-tight uppercase tracking-wide">
-                      {sys.supplierName}
-                    </span>
-                    {/* Accent line */}
-                    <div className="absolute left-0 top-0 bottom-0 w-0.5" style={{ backgroundColor: sys.supplierColor }} />
+                    {/* Цветная полоска слева */}
+                    <div className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full" style={{ backgroundColor: sys.supplierColor }} />
                   </div>
 
                   {/* Контент */}
-                  <div className="flex-1 p-4 flex flex-col justify-center gap-2 min-w-0">
-                    <div className="flex items-start justify-between gap-3 flex-wrap">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-black text-base text-[var(--text-primary)] leading-tight mb-1">
-                          {sys.seriesName}
-                        </div>
-                        <p className="text-xs text-[var(--text-muted)] mb-2 leading-relaxed">{sys.description}</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {sys.pills.map((pill, pi) => (
-                            <span
-                              key={pi}
-                              className="text-[10px] px-2.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--text-secondary)] bg-[var(--bg-secondary)] font-medium"
-                            >
-                              {pill.label}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Цена */}
-                      <div className="text-right flex-shrink-0 min-w-[100px]">
-                        <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider mb-1">комплектующие</div>
-                        {isLoading ? (
-                          <div className="text-xs text-[var(--text-muted)] animate-pulse">считаю...</div>
-                        ) : sys.totalPrice != null ? (
-                          <div className="text-xl font-black" style={{ color: sys.supplierColor }}>
-                            ~{Math.round(sys.totalPrice).toLocaleString('ru')} ₽
-                          </div>
-                        ) : (
-                          <div className="text-xs text-[var(--text-muted)]">нет цены</div>
-                        )}
+                  <div className="flex-1 py-4 pr-4 flex items-center gap-4 min-w-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-black text-base text-white leading-tight">{sys.seriesName}</div>
+                      <p className="text-xs text-white/40 mt-0.5 leading-relaxed truncate">{sys.description}</p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {sys.pills.map((pill, pi) => (
+                          <span key={pi} className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 text-white/50 font-medium">
+                            {pill.label}
+                          </span>
+                        ))}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Чекбокс */}
-                  <div className="flex items-center pr-4 flex-shrink-0">
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                        isSelected
-                          ? 'shadow-[0_0_10px_var(--neon-glow)]'
-                          : 'border-[var(--border)]'
-                      }`}
-                      style={isSelected ? { backgroundColor: sys.supplierColor, borderColor: sys.supplierColor } : {}}
-                    >
-                      {isSelected && <Icon name="Check" size={10} className="text-white" />}
+                    {/* Цена */}
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-[9px] text-white/25 uppercase tracking-wider mb-1">комплектующие</div>
+                      {isLoading ? (
+                        <div className="text-xs text-white/30 animate-pulse">считаю...</div>
+                      ) : sys.totalPrice != null ? (
+                        <div className="text-xl font-black" style={{ color: sys.supplierColor }}>
+                          ~{Math.round(sys.totalPrice).toLocaleString('ru')} ₽
+                        </div>
+                      ) : (
+                        <div className="text-xs text-white/25">нет цены</div>
+                      )}
                     </div>
+
+                    <Icon name="ChevronRight" size={18} className="text-white/20 group-hover:text-white/60 transition-colors flex-shrink-0" />
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
-
-        {selected && (
-          <div className="mt-5 flex justify-end animate-fadein">
-            <button onClick={handleConfirm} className="neon-btn text-white font-bold px-8 py-3 rounded-xl flex items-center gap-2">
-              Перейти к комплектующим
-              <Icon name="ArrowRight" size={16} />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
