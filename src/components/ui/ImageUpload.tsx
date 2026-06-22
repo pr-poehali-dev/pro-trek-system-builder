@@ -47,18 +47,16 @@ export default function ImageUpload({ src, alt = '', className = '', imgClassNam
 
       {onReplace && (
         <>
-          <div
-            className={`absolute inset-0 flex flex-col items-center justify-center gap-1.5 transition-opacity duration-200 cursor-pointer ${
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}
+            className={`absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 border border-white/20 flex items-center justify-center backdrop-blur-sm transition-all duration-200 hover:bg-[var(--neon)] hover:border-[var(--neon)] hover:scale-110 z-10 ${
               hover ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{ background: 'rgba(0,0,0,0.55)' }}
-            onClick={() => inputRef.current?.click()}
+            title="Заменить фото"
           >
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-              <Icon name="Camera" size={16} className="text-white" />
-            </div>
-            <span className="text-white text-[10px] font-semibold">Заменить фото</span>
-          </div>
+            <Icon name="Pencil" size={12} className="text-white" />
+          </button>
           <input
             ref={inputRef}
             type="file"

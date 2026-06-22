@@ -125,13 +125,13 @@ export default function Step0Quote({ state, update, next }: Props) {
     label: string; field: keyof Quote; placeholder?: string; type?: string; required?: boolean; icon?: string;
   }) => (
     <div className="relative">
-      <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1.5 block">
+      <label className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-1.5 block">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
       <div className="relative">
         {icon && (
           <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-            <Icon name={icon as Parameters<typeof Icon>[0]['name']} size={14} className="text-[var(--text-muted)]" />
+            <Icon name={icon as Parameters<typeof Icon>[0]['name']} size={14} className="text-white/25" />
           </div>
         )}
         <input
@@ -139,10 +139,10 @@ export default function Step0Quote({ state, update, next }: Props) {
           value={(form[field] as string) || ''}
           onChange={e => set(field, e.target.value)}
           placeholder={placeholder}
-          className={`w-full bg-[var(--bg-primary)] border text-[var(--text-primary)] ${icon ? 'pl-9' : 'pl-4'} pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all ${
+          className={`w-full bg-[var(--bg-primary)] border text-white placeholder:text-white/25 ${icon ? 'pl-9' : 'pl-4'} pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all ${
             errors[field]
               ? 'border-red-500 focus:border-red-400'
-              : 'border-[var(--border)] focus:border-[var(--neon)] focus:shadow-[0_0_0_3px_rgba(61,90,254,0.1)]'
+              : 'border-white/10 focus:border-[var(--neon)] focus:shadow-[0_0_0_3px_rgba(61,90,254,0.1)]'
           }`}
         />
       </div>
@@ -250,7 +250,7 @@ export default function Step0Quote({ state, update, next }: Props) {
         <div className="pro-card p-4 mb-5">
           <div className="flex items-center gap-2 mb-3">
             <Icon name="Tag" size={13} className="text-[var(--neon)]" />
-            <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Статус счёта</span>
+            <span className="text-[11px] font-bold text-white/60 uppercase tracking-wider">Статус счёта</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {statuses.map(s => (
@@ -296,7 +296,7 @@ export default function Step0Quote({ state, update, next }: Props) {
             <Field label="Адрес объекта" field="object_address" placeholder="г. Москва, ул. Садовая, 5" icon="MapPin" />
 
             <div>
-              <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Тип помещения</label>
+              <label className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-2 block">Тип помещения</label>
               <div className="grid grid-cols-2 gap-1.5">
                 {ROOM_TYPES.map(rt => (
                   <button
@@ -304,8 +304,8 @@ export default function Step0Quote({ state, update, next }: Props) {
                     onClick={() => set('room_type', rt.label)}
                     className={`flex items-center gap-2 text-xs px-3 py-2 rounded-xl border transition-all text-left ${
                       form.room_type === rt.label
-                        ? 'border-[var(--neon)] bg-[rgba(61,90,254,0.08)] text-[var(--text-primary)] font-semibold'
-                        : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[rgba(61,90,254,0.4)] hover:text-[var(--text-secondary)]'
+                        ? 'border-[var(--neon)] bg-[rgba(61,90,254,0.12)] text-white font-semibold'
+                        : 'border-white/10 text-white/50 hover:border-white/25 hover:text-white/80'
                     }`}
                   >
                     <span className="text-sm">{rt.icon}</span>
@@ -332,7 +332,7 @@ export default function Step0Quote({ state, update, next }: Props) {
             onChange={e => set('notes', e.target.value)}
             placeholder="Особые пожелания, комментарии к заказу..."
             rows={3}
-            className="w-full bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--neon)] focus:shadow-[0_0_0_3px_rgba(61,90,254,0.1)] transition-all resize-none"
+            className="w-full bg-[var(--bg-primary)] border border-white/10 text-white placeholder:text-white/25 px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--neon)] focus:shadow-[0_0_0_3px_rgba(61,90,254,0.1)] transition-all resize-none"
           />
         </div>
 
