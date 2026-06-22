@@ -11,7 +11,21 @@ const TABS = [
   { key: 'demo',      label: 'Демо-данные',      icon: 'Database'  },
 ];
 
-const SUPPLIERS = [
+const ALL_MOUNT_TYPES = [
+  { id: 'surface',  label: 'Универсальные'    },
+  { id: 'harpoon',  label: 'Гарпунные'        },
+  { id: 'other',    label: 'На поверхность'   },
+  { id: 'built_in', label: 'Для гипсокартона' },
+];
+
+type SystemDef = { name: string; types: string[]; voltage: string; wires: string };
+type SupplierDef = {
+  code: string; name: string; color: string; logo: string;
+  status: string; statusLabel: string; statusColor: string;
+  systems: SystemDef[];
+};
+
+const SUPPLIERS_DEFAULT: SupplierDef[] = [
   {
     code: 'arlight',
     name: 'Arlight',
@@ -21,9 +35,9 @@ const SUPPLIERS = [
     statusLabel: 'Ожидает доступ из ЛК',
     statusColor: '#f59e0b',
     systems: [
-      { name: 'TRACK-4TR (220В)', types: ['Универсальные', 'Гарпунные', 'На поверхность', 'Для гипсокартона'], voltage: '220В', wires: '4-проводная' },
-      { name: 'MAG-45 (48В)',     types: ['Универсальные', 'На поверхность', 'Для гипсокартона'],              voltage: '48В',  wires: 'Маломощная' },
-      { name: 'MAG-20 (24В)',     types: ['Универсальные', 'На поверхность'],                                  voltage: '24В',  wires: 'Компактная' },
+      { name: 'TRACK-4TR (220В)', types: ['surface', 'harpoon'],           voltage: '220В', wires: '4-проводная' },
+      { name: 'MAG-45 (48В)',     types: ['surface', 'built_in'],          voltage: '48В',  wires: 'Маломощная'  },
+      { name: 'MAG-20 (24В)',     types: ['surface'],                      voltage: '24В',  wires: 'Компактная'  },
     ],
   },
   {
@@ -35,7 +49,7 @@ const SUPPLIERS = [
     statusLabel: 'Demo-данные',
     statusColor: '#8b5cf6',
     systems: [
-      { name: 'EGO Track System', types: ['Универсальные', 'Гарпунные', 'На поверхность'], voltage: '220В', wires: '4-проводная' },
+      { name: 'EGO Track System', types: ['surface', 'harpoon', 'other'], voltage: '220В', wires: '4-проводная' },
     ],
   },
 ];
@@ -45,6 +59,21 @@ export default function Settings() {
   const [tab, setTab] = useState<'screens' | 'suppliers' | 'upload' | 'demo'>('screens');
   const [seedLoading, setSeedLoading] = useState(false);
   const [seedResult, setSeedResult] = useState<{ ok: boolean; total: number } | null>(null);
+  const [suppliers, setSuppliers] = useState<SupplierDef[]>(SUPPLIERS_DEFAULT);
+
+  const toggleType = (supplierCode: string, sysIndex: number, typeId: string) => {
+    setSuppliers(prev => prev.map(s => {
+      if (s.code !== supplierCode) return s;
+      return {
+        ...s,
+        systems: s.systems.map((sys, i) => {
+          if (i !== sysIndex) return sys;
+          const has = sys.types.includes(typeId);
+          return { ...sys, types: has ? sys.types.filter(t => t !== typeId) : [...sys.types, typeId] };
+        }),
+      };
+    }));
+  };
 
   const handleSeedDemo = async () => {
     setSeedLoading(true);
@@ -97,11 +126,11 @@ export default function Settings() {
             <div className="pro-card p-4 flex items-start gap-3">
               <Icon name="Info" size={14} className="text-[var(--neon)] flex-shrink-0 mt-0.5" />
               <div className="text-xs text-white/60 leading-relaxed">
-                На шаге 5 клиент видит <strong className="text-white">все системы всех поставщиков</strong> для выбранного типа установки и сам выбирает подходящую. Здесь — справочник: какой поставщик, какие системы, для каких типов.
+                На шаге 5 клиент видит <strong className="text-white">все системы всех поставщиков</strong> для выбранного типа установки. Здесь настрой: какая система поддерживает какой тип монтажа.
               </div>
             </div>
 
-            {SUPPLIERS.map(s => (
+            {suppliers.map(s => (
               <div key={s.code} className="pro-card overflow-hidden">
                 {/* Шапка поставщика */}
                 <div className="flex items-center gap-4 p-4 border-b border-[var(--border)]" style={{ background: `linear-gradient(135deg, ${s.color}10, transparent)` }}>
@@ -110,7 +139,7 @@ export default function Settings() {
                   </div>
                   <div className="flex-1">
                     <div className="font-black text-white text-base">{s.name}</div>
-                    <div className="text-xs text-white/40 mt-0.5">{s.systems.length} системы в каталоге</div>
+                    <div className="text-xs text-white/40 mt-0.5">{s.systems.length} {s.systems.length === 1 ? 'система' : 'системы'} в каталоге</div>
                   </div>
                   <span className="text-[10px] px-2.5 py-1 rounded-full font-bold" style={{ backgroundColor: `${s.statusColor}22`, color: s.statusColor, border: `1px solid ${s.statusColor}44` }}>
                     {s.statusLabel}
@@ -119,25 +148,40 @@ export default function Settings() {
 
                 {/* Системы */}
                 <div className="divide-y divide-[var(--border)]">
-                  {s.systems.map((sys, i) => (
-                    <div key={i} className="px-4 py-3 flex items-start gap-4">
-                      <div className="flex-1 min-w-0">
+                  {s.systems.map((sys, sysIdx) => (
+                    <div key={sysIdx} className="px-4 py-4">
+                      <div className="flex items-center gap-3 mb-3">
                         <div className="font-bold text-sm text-white">{sys.name}</div>
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          {sys.types.map(t => (
-                            <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] border border-[var(--border)] text-white/50">
-                              {t}
-                            </span>
-                          ))}
+                        <div className="flex gap-1.5 ml-auto">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: `${s.color}22`, color: s.color }}>
+                            {sys.voltage}
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] text-white/40 border border-[var(--border)]">
+                            {sys.wires}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex gap-1.5 flex-shrink-0">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: `${s.color}22`, color: s.color }}>
-                          {sys.voltage}
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] text-white/40 border border-[var(--border)]">
-                          {sys.wires}
-                        </span>
+                      {/* Чекбоксы типов */}
+                      <div className="flex flex-wrap gap-2">
+                        {ALL_MOUNT_TYPES.map(mt => {
+                          const active = sys.types.includes(mt.id);
+                          return (
+                            <button
+                              key={mt.id}
+                              onClick={() => toggleType(s.code, sysIdx, mt.id)}
+                              className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border font-medium transition-all ${
+                                active
+                                  ? 'border-[var(--neon)] bg-[var(--neon)]/10 text-[var(--neon)]'
+                                  : 'border-[var(--border)] bg-transparent text-white/30 hover:text-white/60 hover:border-white/30'
+                              }`}
+                            >
+                              <div className={`w-3 h-3 rounded-sm border flex items-center justify-center flex-shrink-0 transition-all ${active ? 'border-[var(--neon)] bg-[var(--neon)]' : 'border-white/20'}`}>
+                                {active && <Icon name="Check" size={8} className="text-white" />}
+                              </div>
+                              {mt.label}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
