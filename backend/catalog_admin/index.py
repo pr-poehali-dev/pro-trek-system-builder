@@ -47,6 +47,36 @@ def handler(event: dict, context) -> dict:
     params = event.get('queryStringParameters') or {}
     action = params.get('action', '')
 
+    # ── GET ?action=cleanup — разовая очистка демо и мусора ──────────────────
+    if method == 'GET' and action == 'cleanup':
+        conn = get_db()
+        cur = conn.cursor()
+        # Мусорные серии Arlight (хэши) и все данные EGO
+        cur.execute("SELECT id FROM suppliers WHERE code = 'ego'")
+        ego = cur.fetchone()
+        if ego:
+            cur.execute("SELECT id FROM products WHERE supplier_id = %s", (ego[0],))
+            pids = [r[0] for r in cur.fetchall()]
+            if pids:
+                cur.execute("DELETE FROM price_stock WHERE product_id = ANY(%s)", (pids,))
+                cur.execute("DELETE FROM product_params WHERE product_id = ANY(%s)", (pids,))
+                cur.execute("DELETE FROM products WHERE supplier_id = %s", (ego[0],))
+            cur.execute("DELETE FROM series WHERE supplier_id = %s", (ego[0],))
+            cur.execute("DELETE FROM supplier_systems WHERE supplier_code = 'ego'")
+        # Мусорные серии (хэши — LENGTH > 20)
+        cur.execute("SELECT id FROM series WHERE LENGTH(name) > 20")
+        bad_sr = [r[0] for r in cur.fetchall()]
+        if bad_sr:
+            cur.execute("SELECT id FROM products WHERE series_id = ANY(%s)", (bad_sr,))
+            pids2 = [r[0] for r in cur.fetchall()]
+            if pids2:
+                cur.execute("DELETE FROM price_stock WHERE product_id = ANY(%s)", (pids2,))
+                cur.execute("DELETE FROM product_params WHERE product_id = ANY(%s)", (pids2,))
+                cur.execute("DELETE FROM products WHERE series_id = ANY(%s)", (bad_sr,))
+            cur.execute("DELETE FROM series WHERE id = ANY(%s)", (bad_sr,))
+        conn.close()
+        return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps({'ok': True, 'cleaned': True})}
+
     # ── GET / — полная иерархия ───────────────────────────────────────────────
     if method == 'GET' and not action:
         conn = get_db()
@@ -241,5 +271,39 @@ def handler(event: dict, context) -> dict:
 
         conn.close()
         return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps({'ok': True, 'saved': saved})}
+
+    # ── POST purge_supplier — удалить все данные поставщика ──────────────────
+    if method == 'POST' and action == 'purge_supplier':
+        body = json.loads(event.get('body') or '{}')
+        supplier_code = body.get('supplier_code', '')
+        series_ids    = body.get('series_ids', [])  # конкретные серии, или пусто = все у поставщика
+
+        conn = get_db()
+        cur = conn.cursor()
+
+        if series_ids:
+            ids_tuple = tuple(int(i) for i in series_ids)
+            cur.execute("SELECT id FROM products WHERE series_id = ANY(%s)", (list(ids_tuple),))
+            prod_ids = [r[0] for r in cur.fetchall()]
+            if prod_ids:
+                cur.execute("DELETE FROM price_stock WHERE product_id = ANY(%s)", (prod_ids,))
+                cur.execute("DELETE FROM product_params WHERE product_id = ANY(%s)", (prod_ids,))
+                cur.execute("DELETE FROM products WHERE id = ANY(%s)", (prod_ids,))
+            cur.execute("DELETE FROM series WHERE id = ANY(%s)", (list(ids_tuple),))
+        elif supplier_code:
+            cur.execute("SELECT id FROM suppliers WHERE code = %s", (supplier_code,))
+            sup = cur.fetchone()
+            if sup:
+                cur.execute("SELECT id FROM products WHERE supplier_id = %s", (sup[0],))
+                prod_ids = [r[0] for r in cur.fetchall()]
+                if prod_ids:
+                    cur.execute("DELETE FROM price_stock WHERE product_id = ANY(%s)", (prod_ids,))
+                    cur.execute("DELETE FROM product_params WHERE product_id = ANY(%s)", (prod_ids,))
+                    cur.execute("DELETE FROM products WHERE supplier_id = %s", (sup[0],))
+                cur.execute("DELETE FROM series WHERE supplier_id = %s", (sup[0],))
+                cur.execute("DELETE FROM supplier_systems WHERE supplier_code = %s", (supplier_code,))
+
+        conn.close()
+        return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps({'ok': True})}
 
     return {'statusCode': 405, 'headers': HEADERS, 'body': json.dumps({'error': 'not found'})}
