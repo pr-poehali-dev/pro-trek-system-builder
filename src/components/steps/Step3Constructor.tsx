@@ -156,24 +156,26 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
           {SHAPES.map(shape => (
             <div
               key={shape}
-              className="group relative flex flex-col rounded-2xl overflow-hidden border-2 border-transparent hover:border-[var(--neon)] transition-all duration-200 hover:shadow-[0_0_20px_var(--neon-glow)] hover:-translate-y-0.5 cursor-pointer"
-              onClick={() => setActiveShape(shape)}
+              className="group relative flex flex-col rounded-2xl overflow-hidden border-2 border-transparent hover:border-[var(--neon)] transition-all duration-200 hover:shadow-[0_0_20px_var(--neon-glow)] hover:-translate-y-0.5"
             >
+              {/* Фото — только карандашик */}
               <div className="aspect-square bg-[#c8cad4] overflow-hidden relative">
                 <ImageUpload
                   src={shapePhotos[shape]}
                   alt={SHAPE_META[shape].label}
                   className="w-full h-full"
                   imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onReplace={url => {
-                    setShapePhotos(prev => ({ ...prev, [shape]: url }));
-                  }}
+                  onReplace={url => setShapePhotos(prev => ({ ...prev, [shape]: url }))}
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <ShapeSVG shape={shape} size={54} color="rgba(20,20,40,0.5)" />
                 </div>
               </div>
-              <div className="bg-[#c8cad4] group-hover:bg-[var(--neon)] py-2 px-2 transition-colors">
+              {/* Плашка с названием — клик открывает модалку */}
+              <div
+                onClick={() => setActiveShape(shape)}
+                className="bg-[#c8cad4] group-hover:bg-[var(--neon)] py-2 px-2 transition-colors cursor-pointer"
+              >
                 <span className="text-[10px] font-black text-[#1a1a2e] group-hover:text-white tracking-wider uppercase block text-center transition-colors">
                   {SHAPE_META[shape].label}
                 </span>

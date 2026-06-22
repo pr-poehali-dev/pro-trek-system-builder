@@ -42,13 +42,13 @@ export default function Step2MountType({ state, next, back, totalSteps }: Props)
           {types.map((t, i) => (
             <div
               key={t.id}
-              onClick={() => handleSelect(t.id)}
-              className={`relative pro-card overflow-hidden cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 ${
+              className={`relative pro-card overflow-hidden group transition-all duration-200 hover:-translate-y-0.5 ${
                 mount === t.id
                   ? 'selected shadow-[0_0_24px_var(--neon-glow)] border-[var(--neon)]'
                   : 'hover:border-[rgba(61,90,254,0.5)] hover:shadow-[0_0_16px_rgba(61,90,254,0.15)]'
               }`}
             >
+              {/* Фото — только карандашик */}
               <div className="aspect-[4/3] overflow-hidden bg-[var(--bg-secondary)] relative">
                 <ImageUpload
                   src={t.img}
@@ -62,12 +62,16 @@ export default function Step2MountType({ state, next, back, totalSteps }: Props)
                   })}
                 />
                 {mount === t.id && (
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[var(--neon)] flex items-center justify-center shadow-[0_0_10px_var(--neon-glow)]">
+                  <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-[var(--neon)] flex items-center justify-center shadow-[0_0_10px_var(--neon-glow)] pointer-events-none">
                     <Icon name="Check" size={12} className="text-white" />
                   </div>
                 )}
               </div>
-              <div className={`p-3.5 transition-colors ${mount === t.id ? 'bg-[rgba(61,90,254,0.06)]' : 'bg-[var(--bg-secondary)]'}`}>
+              {/* Нижний блок — клик для выбора */}
+              <div
+                onClick={() => handleSelect(t.id)}
+                className={`p-3.5 cursor-pointer transition-colors ${mount === t.id ? 'bg-[rgba(61,90,254,0.06)]' : 'bg-[var(--bg-secondary)]'}`}
+              >
                 <div className="font-bold text-sm text-[var(--text-primary)]">{t.title}</div>
                 <div className={`text-xs mt-0.5 font-medium ${mount === t.id ? 'text-[var(--neon)]' : 'text-[var(--text-secondary)]'}`}>{t.sub}</div>
               </div>
