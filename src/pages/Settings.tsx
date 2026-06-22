@@ -489,8 +489,9 @@ function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesI
           )}
 
           {/* Шапка */}
-          <div className="flex items-center gap-4 py-2 text-xs text-white/25 uppercase tracking-wider">
-            <span className="w-32 flex-shrink-0">Артикул</span>
+          <div className="flex items-center gap-3 py-2 text-xs text-white/25 uppercase tracking-wider">
+            <span className="w-9 flex-shrink-0" />
+            <span className="w-28 flex-shrink-0">Артикул</span>
             <span className="flex-1">Название</span>
             <span className="w-8 text-right">Ед.</span>
             <span className="w-24 text-right">Цена</span>
@@ -500,8 +501,15 @@ function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesI
           {products.length === 0 && <div className="py-10 text-center text-white/20 text-sm">Пусто</div>}
 
           {products.map(p => (
-            <div key={p.id} className="flex items-center gap-4 py-2.5 border-t border-white/5 group hover:bg-white/2 rounded-lg transition-colors">
-              <span className="font-mono text-white/30 text-xs w-32 flex-shrink-0 truncate">{p.article}</span>
+            <div key={p.id} className="flex items-center gap-3 py-2 border-t border-white/5 group hover:bg-white/2 rounded-lg transition-colors">
+              {/* Картинка / плейсхолдер */}
+              <div className="w-9 h-9 rounded-lg flex-shrink-0 overflow-hidden bg-white/6 flex items-center justify-center text-lg">
+                {p.image_id
+                  ? <img src={p.image_id} alt="" className="w-full h-full object-cover" />
+                  : <span className="text-base leading-none">{catEmoji(p.category)}</span>
+                }
+              </div>
+              <span className="font-mono text-white/30 text-xs w-28 flex-shrink-0 truncate">{p.article}</span>
               <span className="flex-1 text-white text-sm truncate">{p.name}</span>
               <span className="text-white/30 text-xs w-8 text-right">{p.unit}</span>
               {editingPrice === p.id ? (
