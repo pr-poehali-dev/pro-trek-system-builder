@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminScreensTab from '@/components/AdminScreensTab';
 import Icon from '@/components/ui/icon';
-import { seedDemo } from '@/lib/api';
+import { seedDemo, getSupplierSystems, saveSupplierSystem } from '@/lib/api';
 
 const TABS = [
   { key: 'screens',   label: 'Экраны',          icon: 'Image'     },
@@ -60,19 +60,53 @@ export default function Settings() {
   const [seedLoading, setSeedLoading] = useState(false);
   const [seedResult, setSeedResult] = useState<{ ok: boolean; total: number } | null>(null);
   const [suppliers, setSuppliers] = useState<SupplierDef[]>(SUPPLIERS_DEFAULT);
+  const [loadingSuppliers, setLoadingSuppliers] = useState(true);
+
+  // Загружаем из БД при открытии вкладки
+  useEffect(() => {
+    getSupplierSystems().then(data => {
+      if (Object.keys(data).length === 0) { setLoadingSuppliers(false); return; }
+      setSuppliers(prev => prev.map(s => {
+        const dbSupplier = data[s.code];
+        if (!dbSupplier) return s;
+        return {
+          ...s,
+          systems: s.systems.map((sys, i) => {
+            const dbSys = dbSupplier[i];
+            return dbSys ? { ...sys, types: dbSys.types } : sys;
+          }),
+        };
+      }));
+      setLoadingSuppliers(false);
+    });
+  }, []);
 
   const toggleType = (supplierCode: string, sysIndex: number, typeId: string) => {
-    setSuppliers(prev => prev.map(s => {
-      if (s.code !== supplierCode) return s;
-      return {
-        ...s,
-        systems: s.systems.map((sys, i) => {
-          if (i !== sysIndex) return sys;
-          const has = sys.types.includes(typeId);
-          return { ...sys, types: has ? sys.types.filter(t => t !== typeId) : [...sys.types, typeId] };
-        }),
-      };
-    }));
+    setSuppliers(prev => {
+      const next = prev.map(s => {
+        if (s.code !== supplierCode) return s;
+        return {
+          ...s,
+          systems: s.systems.map((sys, i) => {
+            if (i !== sysIndex) return sys;
+            const has = sys.types.includes(typeId);
+            return { ...sys, types: has ? sys.types.filter(t => t !== typeId) : [...sys.types, typeId] };
+          }),
+        };
+      });
+      // Сохраняем изменённую систему в БД
+      const supplier = next.find(s => s.code === supplierCode)!;
+      const sys = supplier.systems[sysIndex];
+      saveSupplierSystem({
+        supplier_code: supplierCode,
+        system_index: sysIndex,
+        system_name: sys.name,
+        voltage: sys.voltage,
+        wires: sys.wires,
+        types: sys.types,
+      });
+      return next;
+    });
   };
 
   const handleSeedDemo = async () => {
@@ -123,6 +157,9 @@ export default function Settings() {
         {/* ── Поставщики ── */}
         {tab === 'suppliers' && (
           <div className="space-y-4">
+            {loadingSuppliers && (
+              <div className="text-center py-8 text-white/30 text-sm animate-pulse">Загружаю настройки...</div>
+            )}
             <div className="pro-card p-4 flex items-start gap-3">
               <Icon name="Info" size={14} className="text-[var(--neon)] flex-shrink-0 mt-0.5" />
               <div className="text-xs text-white/60 leading-relaxed">

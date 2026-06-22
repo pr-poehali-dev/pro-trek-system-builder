@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "GET all supplier systems",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST save system types",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "supplier_code": "arlight",
+        "system_index": 0,
+        "system_name": "TRACK-4TR (220В)",
+        "voltage": "220В",
+        "wires": "4-проводная",
+        "types": ["surface", "harpoon"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": { "ok": true },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
