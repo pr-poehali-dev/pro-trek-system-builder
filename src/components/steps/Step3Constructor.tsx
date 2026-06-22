@@ -42,7 +42,7 @@ function AddShapeModal({ shape, photo, onAdd, onClose, onReplacePhoto }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm pb-8 px-4">
       <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl w-full max-w-sm mx-4 overflow-hidden animate-fadein shadow-2xl">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
@@ -67,9 +67,6 @@ function AddShapeModal({ shape, photo, onAdd, onClose, onReplacePhoto }: {
             imgClassName="w-full h-full object-cover"
             onReplace={onReplacePhoto}
           />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <ShapeSVG shape={shape} size={90} color="rgba(255,255,255,0.15)" />
-          </div>
           <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--bg-card)] to-transparent pointer-events-none" />
         </div>
 
