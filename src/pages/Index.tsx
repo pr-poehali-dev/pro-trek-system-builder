@@ -11,7 +11,6 @@ import Step6Accessories from '@/components/steps/Step6Accessories';
 import Step7Luminaires from '@/components/steps/Step6Luminaires';
 import Step7Electrical from '@/components/steps/Step7Electrical';
 import Step8Final from '@/components/steps/Step8Final';
-import AdminPanel from '@/components/AdminPanel';
 import Icon from '@/components/ui/icon';
 
 const TOTAL_STEPS = 9;
@@ -45,7 +44,6 @@ const STATUS_LABELS: Record<string, string> = {
 export default function Index() {
   const navigate = useNavigate();
   const [state, setState] = useState<ProjectState>(initState);
-  const [showAdmin, setShowAdmin] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
 
   const update = useCallback((patch: Partial<ProjectState>) => {
@@ -171,12 +169,8 @@ export default function Index() {
           </button>
 
           <button
-            onClick={() => setShowAdmin(!showAdmin)}
-            className={`flex items-center gap-1.5 text-[10px] transition-colors px-2.5 py-1.5 rounded border hover:border-[var(--neon)] hover:text-[var(--neon)] ${
-              showAdmin
-                ? 'border-[var(--neon)] text-[var(--neon)]'
-                : 'border-[var(--border)] text-[var(--text-muted)]'
-            }`}
+            onClick={() => navigate('/settings')}
+            className="flex items-center gap-1.5 text-[10px] transition-colors px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)]"
           >
             <Icon name="Settings" size={11} />
             <span className="hidden sm:inline font-semibold">Настройки</span>
@@ -191,16 +185,7 @@ export default function Index() {
         </div>
       </header>
 
-      {showAdmin && (
-        <AdminPanel
-          onClose={() => setShowAdmin(false)}
-          currentSupplier={state.supplierCode}
-          onSupplierChange={(code) => {
-            update({ supplierCode: code });
-            setShowAdmin(false);
-          }}
-        />
-      )}
+
 
       {/* ─── Модалка: Данные заказа ─────────────────────────────────── */}
       {showQuote && (
