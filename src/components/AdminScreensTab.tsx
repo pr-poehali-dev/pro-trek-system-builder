@@ -1,8 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { usePersistedImages } from '@/lib/usePersistedImages';
 import Icon from '@/components/ui/icon';
 
-// ─── Конфиг всех экранов и карточек ───────────────────────────────────────────
 const SCREENS = [
   {
     key: 'step1',
@@ -52,57 +51,106 @@ const SCREENS = [
   },
 ];
 
-// ─── Строка таблицы ────────────────────────────────────────────────────────────
 function ImageRow({ cardId, label, src, onReplace }: {
   cardId: string; label: string; src: string; onReplace: (id: string, url: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = e => {
-      const url = e.target?.result as string;
-      onReplace(cardId, url);
+    reader.onload = async e => {
+      const data = e.target?.result as string;
+      setSaving(true);
+      await onReplace(cardId, data);
+      setSaving(false);
     };
     reader.readAsDataURL(file);
   };
 
+  const handleUrlSave = async () => {
+    if (!urlInput.trim()) return;
+    setSaving(true);
+    await onReplace(cardId, urlInput.trim());
+    setSaving(false);
+    setEditing(false);
+    setUrlInput('');
+  };
+
   return (
-    <div className="flex items-center gap-4 py-3 px-4 border-b border-[var(--border)] hover:bg-[var(--bg-secondary)] transition-colors group">
-      {/* Превью */}
-      <div className="w-16 h-12 rounded-lg overflow-hidden bg-[var(--bg-secondary)] flex-shrink-0 border border-[var(--border)]">
-        <img src={src} alt={label} className="w-full h-full object-cover" />
+    <div className="border-b border-[var(--border)] last:border-0">
+      <div className="flex items-center gap-3 py-3 px-4 hover:bg-[var(--bg-secondary)] transition-colors">
+        {/* Превью */}
+        <div className="w-14 h-11 rounded-lg overflow-hidden bg-[var(--bg-secondary)] flex-shrink-0 border border-[var(--border)]">
+          <img src={src} alt={label} className="w-full h-full object-cover" />
+        </div>
+
+        {/* Название */}
+        <div className="flex-1 text-sm font-semibold text-[var(--text-primary)]">{label}</div>
+
+        {/* Статус сохранения */}
+        {saving && (
+          <span className="text-[10px] text-[var(--neon)] animate-pulse flex-shrink-0">Сохраняю...</span>
+        )}
+
+        {/* Кнопки */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            onClick={() => { setEditing(!editing); setUrlInput(''); }}
+            className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all"
+          >
+            <Icon name="Link" size={11} /> URL
+          </button>
+          <button
+            onClick={() => inputRef.current?.click()}
+            className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all"
+          >
+            <Icon name="Upload" size={11} /> Файл
+          </button>
+        </div>
+
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*,image/gif"
+          className="hidden"
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
+        />
       </div>
 
-      {/* Название */}
-      <div className="flex-1 text-sm font-semibold text-[var(--text-primary)]">{label}</div>
-
-      {/* URL (укорочен) */}
-      <div className="hidden md:block flex-1 text-[10px] text-[var(--text-muted)] font-mono truncate max-w-[200px]">
-        {src.split('/').pop()}
-      </div>
-
-      {/* Кнопка загрузки */}
-      <button
-        onClick={() => inputRef.current?.click()}
-        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all flex-shrink-0"
-      >
-        <Icon name="Upload" size={12} />
-        Заменить
-      </button>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*,image/gif"
-        className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
-      />
+      {/* Поле ввода URL */}
+      {editing && (
+        <div className="flex items-center gap-2 px-4 pb-3 animate-fadein">
+          <input
+            autoFocus
+            type="url"
+            value={urlInput}
+            onChange={e => setUrlInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleUrlSave()}
+            placeholder="https://..."
+            className="flex-1 bg-[var(--bg-primary)] border border-[var(--border)] text-white text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-[var(--neon)] placeholder:text-white/25"
+          />
+          <button
+            onClick={handleUrlSave}
+            disabled={!urlInput.trim() || saving}
+            className="neon-btn text-white text-xs px-3 py-2 rounded-lg font-semibold disabled:opacity-40"
+          >
+            Сохранить
+          </button>
+          <button
+            onClick={() => setEditing(false)}
+            className="text-white/40 hover:text-white text-xs px-2 py-2 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Блок одного экрана ────────────────────────────────────────────────────────
 function ScreenBlock({ screen }: { screen: typeof SCREENS[0] }) {
   const { images, setImage } = usePersistedImages(screen.key, screen.defaults);
 
@@ -110,7 +158,7 @@ function ScreenBlock({ screen }: { screen: typeof SCREENS[0] }) {
     <div className="pro-card overflow-hidden mb-4">
       <div className="px-4 py-3 bg-[var(--bg-secondary)] border-b border-[var(--border)] flex items-center gap-2">
         <Icon name="LayoutGrid" size={13} className="text-[var(--neon)]" />
-        <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">{screen.label}</span>
+        <span className="text-xs font-bold text-white uppercase tracking-wide">{screen.label}</span>
         <span className="ml-auto text-[10px] text-[var(--text-muted)]">{screen.cards.length} карточки</span>
       </div>
       <div>
@@ -128,17 +176,15 @@ function ScreenBlock({ screen }: { screen: typeof SCREENS[0] }) {
   );
 }
 
-// ─── Главный компонент вкладки ─────────────────────────────────────────────────
 export default function AdminScreensTab() {
   return (
     <div>
       <div className="flex items-start gap-2 p-3 rounded-xl border border-[var(--neon)]/20 bg-[var(--neon)]/5 mb-4">
         <Icon name="Info" size={14} className="text-[var(--neon)] flex-shrink-0 mt-0.5" />
         <div className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-          Загрузите картинки для каждой карточки. Изменения сохраняются мгновенно и отображаются на всех экранах.
+          Вставьте URL картинки или загрузите файл. Изменения сохраняются в базе данных и применяются везде.
         </div>
       </div>
-
       {SCREENS.map(screen => (
         <ScreenBlock key={screen.key} screen={screen} />
       ))}
