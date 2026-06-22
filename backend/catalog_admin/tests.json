@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "GET hierarchy",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": [],
+      "bodyMatcher": "partial"
+    }
+  ]
+}

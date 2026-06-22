@@ -5,7 +5,45 @@ const URLS = {
   seed_demo:        'https://functions.poehali.dev/7349e236-2697-428f-bc85-04e593dcaa86',
   card_images:      'https://functions.poehali.dev/2ddec4a4-fd16-4652-90b2-850fbe5f65c2',
   supplier_systems: 'https://functions.poehali.dev/e3321d38-399f-4107-9b4f-eb20da1fe183',
+  catalog_admin:   'https://functions.poehali.dev/22d63da0-760d-49ca-bd75-6a96cc1af695',
 };
+
+// ── Каталог admin ─────────────────────────────────────────────────────────────
+export async function getCatalogHierarchy() {
+  const r = await fetch(URLS.catalog_admin);
+  return r.json();
+}
+
+export async function addProduct(data: {
+  series_id: number; article: string; name: string;
+  category: string; voltage?: number; unit?: string; price?: number;
+}) {
+  const r = await fetch(URLS.catalog_admin + '?action=add_product', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+export async function updateProductPrice(product_id: number, price: number) {
+  const r = await fetch(URLS.catalog_admin + '?action=update_price', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id, price }),
+  });
+  return r.json();
+}
+
+export async function deleteProduct(product_id: number) {
+  const r = await fetch(URLS.catalog_admin + '?action=delete_product', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id }),
+  });
+  return r.json();
+}
+
+export async function uploadCatalogJson(supplier_code: string, items: object[]) {
+  const r = await fetch(URLS.catalog_admin + '?action=upload_json', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ supplier_code, items }),
+  });
+  return r.json();
+}
 
 // Получить настройки систем поставщиков из БД
 export async function getSupplierSystems(): Promise<Record<string, Record<number, { name: string; voltage: string; wires: string; types: string[] }>>> {

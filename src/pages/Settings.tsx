@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminScreensTab from '@/components/AdminScreensTab';
+import AdminCatalogTab from '@/components/AdminCatalogTab';
 import Icon from '@/components/ui/icon';
 import { seedDemo, getSupplierSystems, saveSupplierSystem } from '@/lib/api';
 
@@ -238,16 +239,7 @@ export default function Settings() {
         {/* ── Файлы каталога ── */}
         {tab === 'upload' && (
           <div>
-            <div className="pro-card p-4 mb-4 flex items-start gap-3">
-              <Icon name="Info" size={14} className="text-[var(--neon)] flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-white/60 leading-relaxed">
-                Поставщик пришлёт файлы (JSON или Excel). Загрузите их здесь — система разберёт структуру и разложит по категориям.
-              </div>
-            </div>
-            <div className="pro-card p-10 text-center">
-              <Icon name="Upload" size={36} className="mx-auto mb-3 text-white/20" />
-              <div className="text-sm text-white/40">Функция загрузки появится после получения доступа от Arlight</div>
-            </div>
+            <AdminCatalogTab />
           </div>
         )}
 
