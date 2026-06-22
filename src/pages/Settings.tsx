@@ -380,68 +380,72 @@ function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesI
   return (
     <div className="space-y-3">
       {/* Поставщики */}
-      <div className="flex flex-wrap gap-2 items-center">
-        {catalog.filter(sup => sup.code !== 'ego').map(sup => (
-          <div key={sup.id} className="flex items-center gap-0">
-            <button
-              onClick={() => { setSelectedSup(sup.id); setSelectedSeries(null); setSelectedCat(null); }}
-              className={`flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-l-xl text-sm font-semibold transition-all ${selectedSup === sup.id ? 'bg-[var(--neon)] text-white' : 'bg-white/6 text-white/50 hover:text-white hover:bg-white/10'}`}>
-              <img src={ARLIGHT_LOGO} alt="" className="w-4 h-4 rounded object-cover" />
-              {sup.name}
-            </button>
-            {selectedSup === sup.id && (
-              <button
-                onClick={() => { setSelectedSup(null); setSelectedSeries(null); setSelectedCat(null); }}
-                className="flex items-center pl-1 pr-2 py-1.5 rounded-r-xl bg-[var(--neon)] text-white/70 hover:text-white transition-colors">
-                <Icon name="X" size={13} />
+      <div className="flex flex-wrap gap-1.5 items-center">
+        {catalog.filter(sup => sup.code !== 'ego').map(sup => {
+          const active = selectedSup === sup.id;
+          return (
+            <div key={sup.id} className={`flex items-center rounded-xl text-sm font-semibold transition-all ${active ? 'bg-[var(--neon)]' : 'bg-white/6 hover:bg-white/10'}`}>
+              <button onClick={() => { setSelectedSup(sup.id); setSelectedSeries(null); setSelectedCat(null); }}
+                className={`flex items-center gap-1.5 pl-3 ${active ? 'pr-1.5' : 'pr-3'} py-1.5 ${active ? 'text-white' : 'text-white/50 hover:text-white'}`}>
+                <img src={ARLIGHT_LOGO} alt="" className="w-4 h-4 rounded object-cover" />
+                {sup.name}
               </button>
-            )}
-            {selectedSup !== sup.id && <span className="w-0" />}
-          </div>
-        ))}
+              {active && (
+                <button onClick={() => { setSelectedSup(null); setSelectedSeries(null); setSelectedCat(null); }}
+                  className="pr-2 pl-0.5 py-1.5 text-white/60 hover:text-white transition-colors">
+                  <Icon name="X" size={11} />
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Системы */}
       {selectedSup && (
-        <div className="flex flex-wrap gap-2">
-          {catalog.find(s => s.id === selectedSup)?.series.map(sr => (
-            <div key={sr.id} className="flex items-center gap-0">
-              <button
-                onClick={() => { setSelectedSeries(sr.id); setSelectedCat(null); }}
-                className={`pl-3 pr-2 py-1.5 text-sm font-medium transition-all ${selectedSeries === sr.id ? 'bg-white/15 text-white rounded-l-xl' : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/8 rounded-xl'}`}>
-                {sr.name} <span className="text-xs opacity-50 ml-1">{sr.product_count}</span>
-              </button>
-              {selectedSeries === sr.id && (
-                <button
-                  onClick={() => { setSelectedSeries(null); setSelectedCat(null); }}
-                  className="flex items-center pl-1 pr-2 py-1.5 rounded-r-xl bg-white/15 text-white/50 hover:text-white transition-colors">
-                  <Icon name="X" size={13} />
+        <div className="flex flex-wrap gap-1.5">
+          {catalog.find(s => s.id === selectedSup)?.series.map(sr => {
+            const active = selectedSeries === sr.id;
+            return (
+              <div key={sr.id} className={`flex items-center rounded-xl text-sm font-medium transition-all ${active ? 'bg-white/15' : 'bg-white/5 hover:bg-white/8'}`}>
+                <button onClick={() => { setSelectedSeries(sr.id); setSelectedCat(null); }}
+                  className={`flex items-center pl-3 ${active ? 'pr-1.5' : 'pr-3'} py-1.5 ${active ? 'text-white' : 'text-white/40 hover:text-white/70'}`}>
+                  {sr.name} <span className="text-xs opacity-40 ml-1.5">{sr.product_count}</span>
                 </button>
-              )}
-            </div>
-          ))}
+                {active && (
+                  <button onClick={() => { setSelectedSeries(null); setSelectedCat(null); }}
+                    className="pr-2 pl-0.5 py-1.5 text-white/40 hover:text-white transition-colors">
+                    <Icon name="X" size={11} />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* Категории */}
       {selectedSeries && (
-        <div className="flex flex-wrap gap-2">
-          {currentSeries?.categories.map(cat => (
-            <div key={cat.key} className="flex items-center gap-0">
-              <button
-                onClick={() => setSelectedCat(cat.key)}
-                className={`flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-sm font-medium transition-all whitespace-nowrap ${selectedCat === cat.key ? 'bg-white/15 text-white rounded-l-xl' : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/8 rounded-xl'}`}>
-                <span>{catEmoji(cat.key)}</span> {cat.label} <span className="text-xs opacity-50">{cat.products.length}</span>
-              </button>
-              {selectedCat === cat.key && (
-                <button
-                  onClick={() => setSelectedCat(null)}
-                  className="flex items-center pl-1 pr-2 py-1.5 rounded-r-xl bg-white/15 text-white/50 hover:text-white transition-colors">
-                  <Icon name="X" size={13} />
+        <div className="flex flex-wrap gap-1.5">
+          {currentSeries?.categories.map(cat => {
+            const active = selectedCat === cat.key;
+            return (
+              <div key={cat.key} className={`flex items-center rounded-xl text-sm font-medium transition-all ${active ? 'bg-white/15' : 'bg-white/5 hover:bg-white/8'}`}>
+                <button onClick={() => setSelectedCat(cat.key)}
+                  className={`flex items-center gap-1.5 pl-3 ${active ? 'pr-1.5' : 'pr-3'} py-1.5 whitespace-nowrap ${active ? 'text-white' : 'text-white/40 hover:text-white/70'}`}>
+                  <span className="text-base leading-none">{catEmoji(cat.key)}</span>
+                  {cat.label}
+                  <span className="text-xs opacity-40">{cat.products.length}</span>
                 </button>
-              )}
-            </div>
-          ))}
+                {active && (
+                  <button onClick={() => setSelectedCat(null)}
+                    className="pr-2 pl-0.5 py-1.5 text-white/40 hover:text-white transition-colors">
+                    <Icon name="X" size={11} />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
