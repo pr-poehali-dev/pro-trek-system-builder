@@ -80,15 +80,15 @@ function ImageRow({ cardId, label, src, onReplace }: {
   };
 
   return (
-    <div className="border-b border-[var(--border)] last:border-0">
-      <div className="flex items-center gap-3 py-3 px-4 hover:bg-[var(--bg-secondary)] transition-colors">
+    <div className="border-b border-white/8 last:border-0">
+      <div className="flex items-center gap-3 py-3 px-4 hover:bg-white/3 transition-colors">
         {/* Превью */}
-        <div className="w-14 h-11 rounded-lg overflow-hidden bg-[var(--bg-secondary)] flex-shrink-0 border border-[var(--border)]">
+        <div className="w-14 h-11 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
           <img src={src} alt={label} className="w-full h-full object-cover" />
         </div>
 
         {/* Название */}
-        <div className="flex-1 text-sm font-semibold text-[var(--text-primary)]">{label}</div>
+        <div className="flex-1 text-sm font-semibold text-white">{label}</div>
 
         {/* Статус сохранения */}
         {saving && (
@@ -99,13 +99,13 @@ function ImageRow({ cardId, label, src, onReplace }: {
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={() => { setEditing(!editing); setUrlInput(''); }}
-            className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all"
+            className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg border border-white/20 text-white hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all"
           >
             <Icon name="Link" size={11} /> URL
           </button>
           <button
             onClick={() => inputRef.current?.click()}
-            className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all"
+            className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg border border-white/20 text-white hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all"
           >
             <Icon name="Upload" size={11} /> Файл
           </button>
@@ -156,10 +156,10 @@ function ScreenBlock({ screen }: { screen: typeof SCREENS[0] }) {
 
   return (
     <div className="pro-card overflow-hidden mb-4">
-      <div className="px-4 py-3 bg-[var(--bg-secondary)] border-b border-[var(--border)] flex items-center gap-2">
+      <div className="px-4 py-3 bg-white/4 border-b border-white/8 flex items-center gap-2">
         <Icon name="LayoutGrid" size={13} className="text-[var(--neon)]" />
         <span className="text-xs font-bold text-white uppercase tracking-wide">{screen.label}</span>
-        <span className="ml-auto text-[10px] text-[var(--text-muted)]">{screen.cards.length} карточки</span>
+        <span className="ml-auto text-[10px] text-white/50">{screen.cards.length} карточки</span>
       </div>
       <div>
         {screen.cards.map(card => (
@@ -179,9 +179,9 @@ function ScreenBlock({ screen }: { screen: typeof SCREENS[0] }) {
 export default function AdminScreensTab() {
   return (
     <div>
-      <div className="flex items-start gap-2 p-3 rounded-xl border border-[var(--neon)]/20 bg-[var(--neon)]/5 mb-4">
+      <div className="flex items-start gap-2 p-3 rounded-xl border border-white/10 bg-white/4 mb-4">
         <Icon name="Info" size={14} className="text-[var(--neon)] flex-shrink-0 mt-0.5" />
-        <div className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+        <div className="text-[11px] text-white/70 leading-relaxed">
           Вставьте URL картинки или загрузите файл. Изменения сохраняются в базе данных и применяются везде.
         </div>
       </div>
