@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminScreensTab from '@/components/AdminScreensTab';
 import Icon from '@/components/ui/icon';
@@ -191,30 +191,39 @@ function SuppliersTab({ onGoToCategories }: { onGoToCategories: (seriesName: str
 
 // ─── Категории товаров (CRUD) ─────────────────────────────────────────────────
 function CategoriesTab({ onGoToCat, contextSeriesName }: { onGoToCat: (catKey: string, seriesName?: string) => void; contextSeriesName?: string }) {
-  const [cats, setCats] = useState(ALL_CATEGORIES.map(c => ({ ...c, enabled: true, order: ALL_CATEGORIES.indexOf(c) })));
+  const [cats, setCats] = useState(ALL_CATEGORIES.map(c => ({ ...c, enabled: true, order: ALL_CATEGORIES.indexOf(c), imageUrl: '' })));
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [editEmoji, setEditEmoji] = useState('');
+  const [editImageUrl, setEditImageUrl] = useState('');
   const [addMode, setAddMode] = useState(false);
   const [newKey, setNewKey] = useState('');
   const [newLabel, setNewLabel] = useState('');
   const [newEmoji, setNewEmoji] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startEdit = (i: number) => {
     setEditIdx(i);
     setEditLabel(cats[i].label);
     setEditEmoji(cats[i].emoji);
+    setEditImageUrl(cats[i].imageUrl ?? '');
   };
 
   const saveEdit = () => {
     if (editIdx === null) return;
-    setCats(prev => prev.map((c, i) => i === editIdx ? { ...c, label: editLabel, emoji: editEmoji } : c));
+    setCats(prev => prev.map((c, i) => i === editIdx ? { ...c, label: editLabel, emoji: editEmoji, imageUrl: editImageUrl } : c));
     setEditIdx(null);
+  };
+
+  const handleImageFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = e => setEditImageUrl(e.target?.result as string);
+    reader.readAsDataURL(file);
   };
 
   const addCat = () => {
     if (!newKey || !newLabel) return;
-    setCats(prev => [...prev, { key: newKey.toLowerCase().replace(/\s+/g, '_'), label: newLabel, emoji: newEmoji || '📦', enabled: true, order: prev.length }]);
+    setCats(prev => [...prev, { key: newKey.toLowerCase().replace(/\s+/g, '_'), label: newLabel, emoji: newEmoji || '📦', enabled: true, order: prev.length, imageUrl: '' }]);
     setNewKey(''); setNewLabel(''); setNewEmoji(''); setAddMode(false);
   };
 
@@ -260,8 +269,13 @@ function CategoriesTab({ onGoToCat, contextSeriesName }: { onGoToCat: (catKey: s
         <div key={cat.key} className={`border-b border-white/5 last:border-0 ${!cat.enabled ? 'opacity-40' : ''}`}>
           {/* Основная строка */}
           <div className="flex items-center gap-3 py-3 group">
-            {/* Эмодзи (всегда видно) */}
-            <span className="text-xl w-10 text-center flex-shrink-0">{cat.emoji}</span>
+            {/* Иконка категории */}
+            <div className="w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center bg-white/5">
+              {cat.imageUrl
+                ? <img src={cat.imageUrl} alt="" className="w-full h-full object-cover" />
+                : <span className="text-xl leading-none">{cat.emoji}</span>
+              }
+            </div>
 
             {/* Название */}
             {editIdx === i ? (
@@ -301,21 +315,47 @@ function CategoriesTab({ onGoToCat, contextSeriesName }: { onGoToCat: (catKey: s
             </div>
           </div>
 
-          {/* Форма редактирования (разворачивается под строкой) */}
+          {/* Форма редактирования */}
           {editIdx === i && (
-            <div className="ml-13 mb-3 pl-10 flex gap-2">
+            <div className="mb-3 pl-13 flex gap-2 items-end">
+              {/* Иконка-эмодзи */}
               <div className="flex flex-col gap-1 flex-shrink-0">
-                <span className="text-[10px] text-white/30 uppercase tracking-wide">Иконка</span>
+                <span className="text-[10px] text-white/30 uppercase tracking-wide">Эмодзи</span>
                 <input value={editEmoji} onChange={e => setEditEmoji(e.target.value)}
                   placeholder="😀"
-                  className="w-14 text-center bg-[#1e1e2e] text-white rounded-lg text-xl px-1 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 border border-white/10" />
+                  className="w-14 text-center bg-[#1e1e2e] text-white rounded-lg text-xl px-1 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 border border-white/10" />
               </div>
+
+              {/* URL или загрузка файла */}
               <div className="flex flex-col gap-1 flex-1">
-                <span className="text-[10px] text-white/30 uppercase tracking-wide">URL картинки (опционально)</span>
-                <input
-                  placeholder="https://... или оставьте пустым"
-                  className="w-full bg-[#1e1e2e] text-white rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 border border-white/10 placeholder:text-white/20" />
+                <span className="text-[10px] text-white/30 uppercase tracking-wide">Картинка</span>
+                <div className="flex gap-2">
+                  <input
+                    value={editImageUrl}
+                    onChange={e => setEditImageUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1 bg-[#1e1e2e] text-white rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 border border-white/10 placeholder:text-white/20" />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-all flex-shrink-0 whitespace-nowrap">
+                    <Icon name="Upload" size={13} /> Файл
+                  </button>
+                  {editImageUrl && (
+                    <button onClick={() => setEditImageUrl('')} className="text-white/30 hover:text-white transition-colors flex-shrink-0 px-1">
+                      <Icon name="X" size={14} />
+                    </button>
+                  )}
+                </div>
+                {/* Превью */}
+                {editImageUrl && (
+                  <div className="mt-1 w-16 h-12 rounded-lg overflow-hidden border border-white/10">
+                    <img src={editImageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
+
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ''; }} />
             </div>
           )}
         </div>
