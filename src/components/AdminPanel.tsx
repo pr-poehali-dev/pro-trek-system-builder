@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { seedDemo } from '@/lib/api';
 import Icon from '@/components/ui/icon';
+import AdminScreensTab from '@/components/AdminScreensTab';
 
 interface Props {
   onClose: () => void;
@@ -59,7 +60,7 @@ const FILE_TYPES = [
 
 export default function AdminPanel({ onClose, onSupplierChange, currentSupplier = 'arlight' }: Props) {
   const [supplier, setSupplier]       = useState(currentSupplier);
-  const [tab, setTab]                 = useState<'supplier' | 'upload' | 'demo'>('supplier');
+  const [tab, setTab]                 = useState<'screens' | 'supplier' | 'upload' | 'demo'>('screens');
   const [seedLoading, setSeedLoading] = useState(false);
   const [seedResult, setSeedResult]   = useState<{ ok: boolean; total: number; results: Record<string, { added: number }> } | null>(null);
   const [uploadResult, setUploadResult] = useState<Record<string, { file: string; status: string }>>({});
@@ -98,9 +99,10 @@ export default function AdminPanel({ onClose, onSupplierChange, currentSupplier 
   };
 
   const TABS = [
-    { key: 'supplier', label: 'Поставщик',     icon: 'Building2'  },
-    { key: 'upload',   label: 'Файлы каталога', icon: 'Upload'     },
-    { key: 'demo',     label: 'Демо-данные',    icon: 'Database'   },
+    { key: 'screens',  label: 'Экраны',         icon: 'Image'      },
+    { key: 'supplier', label: 'Поставщик',       icon: 'Building2'  },
+    { key: 'upload',   label: 'Файлы каталога',  icon: 'Upload'     },
+    { key: 'demo',     label: 'Демо-данные',     icon: 'Database'   },
   ];
 
   return (
@@ -131,6 +133,9 @@ export default function AdminPanel({ onClose, onSupplierChange, currentSupplier 
         </div>
 
         <div className="p-4">
+
+          {/* ── Tab: Экраны ── */}
+          {tab === 'screens' && <AdminScreensTab />}
 
           {/* ── Tab: Поставщик ── */}
           {tab === 'supplier' && (
