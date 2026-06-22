@@ -1,10 +1,20 @@
 import { useState } from 'react';
-import { ProjectState, Construction, ShapeDims } from '@/lib/types';
+import { ProjectState, Construction, ShapeDims, ShapeType } from '@/lib/types';
 import { SHAPE_META, calcConstruction, formatDims } from '@/lib/shapes';
 import { calculateSpec } from '@/lib/api';
 import ProgressBar from '@/components/ProgressBar';
 import ShapeSVG from '@/components/ShapeSVG';
 import Icon from '@/components/ui/icon';
+import { usePersistedImages } from '@/lib/usePersistedImages';
+
+const SHAPE_PHOTOS_DEFAULT: Record<string, string> = {
+  straight: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/9727971c-bc23-41d9-bd0b-23f710886c8f.png',
+  l_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/ab8036a8-9cf5-4364-a03e-e296799b0c8f.png',
+  s_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/cfb8a087-e087-4a47-976c-8c9d25474d56.png',
+  u_shaped: 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/3b53500a-286f-46a8-a75b-1b94e1f4de4f.png',
+  closed:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/1b14201f-d874-4cd9-bb01-891b4fe8ac06.png',
+  custom:   'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/1c642422-3c66-423b-a0cf-625ff221cc18.png',
+};
 
 interface Props { state: ProjectState; update: (p: Partial<ProjectState>) => void; next: (p?: Partial<ProjectState>) => void; back: () => void; totalSteps: number; }
 
@@ -52,6 +62,7 @@ function EditDimsModal({ construction, onSave, onClose }: {
 export default function Step4Constructions({ state, update, next, back, totalSteps }: Props) {
   const [editing, setEditing] = useState<Construction | null>(null);
   const [loading, setLoading] = useState(false);
+  const { images: shapePhotos } = usePersistedImages('step3', SHAPE_PHOTOS_DEFAULT);
 
   const totalLength = state.constructions.reduce((s, c) => s + c.totalLength, 0);
   const totalCorners = state.constructions.reduce((s, c) => s + c.cornersCount, 0);
@@ -147,16 +158,12 @@ export default function Step4Constructions({ state, update, next, back, totalSte
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative bg-[#c8cad4]">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-[#c8cad4]">
                     <img
-                      src="https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/ce45fd93-d91b-4e0a-add0-afef9a176e06.png"
+                      src={shapePhotos[c.shape as ShapeType] ?? SHAPE_PHOTOS_DEFAULT[c.shape]}
                       alt={SHAPE_META[c.shape].label}
-                      className="w-full h-full object-cover opacity-80"
-                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <ShapeSVG shape={c.shape} size={40} color="#1a1a2e" />
-                    </div>
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold text-[var(--text-primary)] text-sm">{SHAPE_META[c.shape].label}</div>
