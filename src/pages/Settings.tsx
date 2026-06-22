@@ -195,7 +195,7 @@ function SuppliersTab({ onGoToProducts }: { onGoToProducts: (seriesName: string)
 }
 
 // ─── Категории товаров (CRUD) ─────────────────────────────────────────────────
-function CategoriesTab() {
+function CategoriesTab({ onGoToCat }: { onGoToCat: (catKey: string) => void }) {
   const [cats, setCats] = useState(ALL_CATEGORIES.map(c => ({ ...c, enabled: true, order: ALL_CATEGORIES.indexOf(c) })));
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editLabel, setEditLabel] = useState('');
@@ -253,7 +253,7 @@ function CategoriesTab() {
 
       {/* Список категорий */}
       {cats.map((cat, i) => (
-        <div key={cat.key} className={`flex items-center gap-3 py-3 border-b border-white/5 last:border-0 ${!cat.enabled ? 'opacity-40' : ''}`}>
+        <div key={cat.key} className={`flex items-center gap-3 py-3 border-b border-white/5 last:border-0 group ${!cat.enabled ? 'opacity-40' : ''}`}>
           {/* Эмодзи */}
           {editIdx === i ? (
             <input value={editEmoji} onChange={e => setEditEmoji(e.target.value)}
@@ -262,13 +262,17 @@ function CategoriesTab() {
             <span className="text-xl w-10 text-center flex-shrink-0">{cat.emoji}</span>
           )}
 
-          {/* Название */}
+          {/* Название — кликабельное при не-редактировании */}
           {editIdx === i ? (
             <input autoFocus value={editLabel} onChange={e => setEditLabel(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && saveEdit()}
               className="flex-1 bg-white/8 text-white rounded-lg text-sm px-3 py-1.5 focus:outline-none" />
           ) : (
-            <span className={`flex-1 text-sm font-medium ${cat.enabled ? 'text-white' : 'text-white/50'}`}>{cat.label}</span>
+            <button
+              onClick={() => onGoToCat(cat.key)}
+              className={`flex-1 text-left text-sm font-medium transition-colors ${cat.enabled ? 'text-white hover:text-[var(--neon)]' : 'text-white/50'}`}>
+              {cat.label}
+            </button>
           )}
 
           {/* Ключ */}
@@ -283,6 +287,10 @@ function CategoriesTab() {
               </>
             ) : (
               <>
+                <button onClick={() => onGoToCat(cat.key)}
+                  className="text-white/20 hover:text-[var(--neon)] p-1 transition-colors opacity-0 group-hover:opacity-100">
+                  <Icon name="ArrowRight" size={14} />
+                </button>
                 <button onClick={() => startEdit(i)} className="text-white/20 hover:text-white p-1 transition-colors"><Icon name="Pencil" size={14} /></button>
                 <button onClick={() => toggle(i)}
                   className={`p-1 transition-colors ${cat.enabled ? 'text-white/20 hover:text-amber-400' : 'text-white/20 hover:text-green-400'}`}>
@@ -298,12 +306,12 @@ function CategoriesTab() {
 }
 
 // ─── Товары ───────────────────────────────────────────────────────────────────
-function ProductsTab({ initSeriesId, initSeriesName }: { initSeriesId?: number; initSeriesName?: string }) {
+function ProductsTab({ initSeriesId, initSeriesName, initCatKey }: { initSeriesId?: number; initSeriesName?: string; initCatKey?: string }) {
   const [catalog, setCatalog] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSup, setSelectedSup] = useState<number | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<number | null>(initSeriesId ?? null);
-  const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [selectedCat, setSelectedCat] = useState<string | null>(initCatKey ?? null);
   const [addingForm, setAddingForm] = useState(false);
   const [form, setForm] = useState({ article: '', name: '', category: 'track', voltage: '', unit: 'шт', price: '' });
   const [saving, setSaving] = useState(false);
@@ -481,10 +489,19 @@ export default function Settings() {
   const [tab, setTab] = useState<'screens' | 'suppliers' | 'categories' | 'products'>('screens');
   const [drillSeriesId, setDrillSeriesId] = useState<number | undefined>();
   const [drillSeriesName, setDrillSeriesName] = useState<string | undefined>();
+  const [drillCatKey, setDrillCatKey] = useState<string | undefined>();
 
   const goToProducts = (seriesName: string) => {
     setDrillSeriesName(seriesName);
     setDrillSeriesId(undefined);
+    setDrillCatKey(undefined);
+    setTab('products');
+  };
+
+  const goToCat = (catKey: string) => {
+    setDrillCatKey(catKey);
+    setDrillSeriesId(undefined);
+    setDrillSeriesName(undefined);
     setTab('products');
   };
 
@@ -511,8 +528,8 @@ export default function Settings() {
       <div className="max-w-3xl mx-auto px-8 py-8">
         {tab === 'screens'    && <AdminScreensTab />}
         {tab === 'suppliers'  && <SuppliersTab onGoToProducts={goToProducts} />}
-        {tab === 'categories' && <CategoriesTab />}
-        {tab === 'products'   && <ProductsTab initSeriesId={drillSeriesId} initSeriesName={drillSeriesName} />}
+        {tab === 'categories' && <CategoriesTab onGoToCat={goToCat} />}
+        {tab === 'products'   && <ProductsTab initSeriesId={drillSeriesId} initSeriesName={drillSeriesName} initCatKey={drillCatKey} />}
       </div>
     </div>
   );
