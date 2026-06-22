@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminScreensTab from '@/components/AdminScreensTab';
 import Icon from '@/components/ui/icon';
 import { getSupplierSystems, saveSupplierSystem, getCatalogHierarchy, addProduct, updateProductPrice, deleteProduct } from '@/lib/api';
 
+// ─── Константы ────────────────────────────────────────────────────────────────
 const ALL_MOUNT_TYPES = [
   { id: 'surface',  label: 'Универсальные'    },
   { id: 'harpoon',  label: 'Гарпунные'        },
@@ -11,36 +12,28 @@ const ALL_MOUNT_TYPES = [
   { id: 'built_in', label: 'Для гипсокартона' },
 ];
 
-const CATEGORY_OPTIONS = [
-  { value: 'track',              label: 'Шинопровод'          },
-  { value: 'head',               label: 'Светильники'         },
-  { value: 'connector_straight', label: 'Соединители прямые'  },
-  { value: 'connector_angle',    label: 'Соединители угловые' },
-  { value: 'connector_flexible', label: 'Соединители гибкие'  },
-  { value: 'end_cap',            label: 'Заглушки'            },
-  { value: 'mount',              label: 'Крепёж / подвесы'    },
-  { value: 'power_inlet',        label: 'Токовводы'           },
-  { value: 'driver',             label: 'Блоки питания'       },
-  { value: 'controller',         label: 'Контроллеры'         },
-  { value: 'base',               label: 'Базы / адаптеры'     },
-  { value: 'accessory',          label: 'Аксессуары'          },
+const ALL_CATEGORIES = [
+  { key: 'track',              label: 'Шинопровод',          emoji: '📏' },
+  { key: 'head',               label: 'Светильники',         emoji: '💡' },
+  { key: 'connector_straight', label: 'Соединители прямые',  emoji: '➡️' },
+  { key: 'connector_angle',    label: 'Соединители угловые', emoji: '↩️' },
+  { key: 'connector_flexible', label: 'Соединители гибкие',  emoji: '〰️' },
+  { key: 'end_cap',            label: 'Заглушки',            emoji: '🔲' },
+  { key: 'mount',              label: 'Крепёж / подвесы',    emoji: '🔗' },
+  { key: 'power_inlet',        label: 'Токовводы',           emoji: '🔌' },
+  { key: 'driver',             label: 'Блоки питания',       emoji: '⚡' },
+  { key: 'controller',         label: 'Контроллеры',         emoji: '🎛️' },
+  { key: 'base',               label: 'Базы / адаптеры',     emoji: '🔧' },
+  { key: 'accessory',          label: 'Аксессуары',          emoji: '📦' },
 ];
-
-// Иконки категорий (эмодзи как плейсхолдеры)
-const CAT_EMOJI: Record<string, string> = {
-  track: '📏', head: '💡', connector_straight: '➡️', connector_angle: '↩️',
-  connector_flexible: '〰️', end_cap: '🔲', mount: '🔗', power_inlet: '🔌',
-  driver: '⚡', controller: '🎛️', base: '🔧', accessory: '📦',
-};
 
 type SystemDef = { name: string; types: string[]; voltage: string; wires: string };
 type SupplierDef = { code: string; name: string; color: string; logo: string; status: string; statusLabel: string; statusColor: string; systems: SystemDef[] };
 interface Product  { id: number; article: string; name: string; category: string; voltage: number | null; unit: string; obsolete: boolean; price: number | null; stock_qty: number | null }
-interface Category { key: string; label: string; products: Product[] }
-interface Series   { id: number; name: string; voltage: number | null; product_count: number; categories: Category[] }
+interface CatGroup { key: string; label: string; products: Product[] }
+interface Series   { id: number; name: string; voltage: number | null; product_count: number; categories: CatGroup[] }
 interface Supplier { id: number; code: string; name: string; series: Series[] }
 
-const SUPPLIER_COLORS: Record<string, string> = { arlight: '#3d5afe' };
 const ARLIGHT_LOGO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/67102236-293c-4925-b47f-e13686e93b7e.jpg';
 
 const SUPPLIERS_DEFAULT: SupplierDef[] = [
@@ -56,16 +49,19 @@ const SUPPLIERS_DEFAULT: SupplierDef[] = [
 ];
 
 const TABS = [
-  { key: 'screens',    label: 'Экраны',     icon: 'Image'     },
-  { key: 'suppliers',  label: 'Поставщики', icon: 'Building2' },
-  { key: 'categories', label: 'Системы',    icon: 'Layers'    },
-  { key: 'products',   label: 'Товары',     icon: 'Package'   },
+  { key: 'screens',    label: 'Экраны',      icon: 'Image'     },
+  { key: 'suppliers',  label: 'Поставщики',  icon: 'Building2' },
+  { key: 'categories', label: 'Категории',   icon: 'Tag'       },
+  { key: 'products',   label: 'Товары',      icon: 'Package'   },
 ];
 
-// ─── Поставщики ───────────────────────────────────────────────────────────────
+const inputCls = "bg-white/6 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/40 placeholder:text-white/25 w-full";
+
+// ─── Поставщики (с раскрывающимися системами) ─────────────────────────────────
 function SuppliersTab() {
   const [suppliers, setSuppliers] = useState<SupplierDef[]>(SUPPLIERS_DEFAULT);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState<Record<string, boolean>>({ arlight: true });
 
   useEffect(() => {
     getSupplierSystems().then(data => {
@@ -80,76 +76,81 @@ function SuppliersTab() {
     });
   }, []);
 
-  const toggleType = (supplierCode: string, sysIndex: number, typeId: string) => {
+  const toggleType = (code: string, idx: number, typeId: string) => {
     setSuppliers(prev => {
       const next = prev.map(s => {
-        if (s.code !== supplierCode) return s;
+        if (s.code !== code) return s;
         return {
           ...s,
           systems: s.systems.map((sys, i) => {
-            if (i !== sysIndex) return sys;
+            if (i !== idx) return sys;
             const has = sys.types.includes(typeId);
             return { ...sys, types: has ? sys.types.filter(t => t !== typeId) : [...sys.types, typeId] };
           }),
         };
       });
-      const sup = next.find(s => s.code === supplierCode)!;
-      const sys = sup.systems[sysIndex];
-      saveSupplierSystem({ supplier_code: supplierCode, system_index: sysIndex, system_name: sys.name, voltage: sys.voltage, wires: sys.wires, types: sys.types });
+      const sup = next.find(s => s.code === code)!;
+      const sys = sup.systems[idx];
+      saveSupplierSystem({ supplier_code: code, system_index: idx, system_name: sys.name, voltage: sys.voltage, wires: sys.wires, types: sys.types });
       return next;
     });
   };
 
-  if (loading) return <div className="text-center py-16 text-white/20 text-sm animate-pulse">Загружаю...</div>;
+  if (loading) return <div className="py-16 text-center text-white/20 text-sm animate-pulse">Загружаю...</div>;
 
   return (
-    <div>
+    <div className="space-y-1">
       {suppliers.map(s => (
         <div key={s.code}>
-          {/* Шапка поставщика */}
-          <div className="flex items-center gap-5 py-6 border-b border-white/8">
-            <img src={s.logo} alt={s.name} className="w-20 h-20 rounded-2xl object-cover flex-shrink-0" />
-            <div className="flex-1">
-              <div className="text-2xl font-black text-white">{s.name}</div>
-              <div className="text-sm text-white/40 mt-1">{s.systems.length} системы в каталоге</div>
-            </div>
-            <span className="text-xs px-3 py-1.5 rounded-full font-bold" style={{ backgroundColor: `${s.statusColor}20`, color: s.statusColor }}>
+          {/* Строка поставщика */}
+          <button
+            onClick={() => setOpen(p => ({ ...p, [s.code]: !p[s.code] }))}
+            className="w-full flex items-center gap-4 py-4 hover:bg-white/3 rounded-xl px-3 -mx-3 transition-colors group"
+          >
+            <img src={s.logo} alt={s.name} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+            <span className="text-base font-bold text-white">{s.name}</span>
+            <span className="text-sm text-white/30">{s.systems.length} системы</span>
+            <span className="ml-auto text-xs px-2.5 py-1 rounded-full font-semibold" style={{ backgroundColor: `${s.statusColor}18`, color: s.statusColor }}>
               {s.statusLabel}
             </span>
-          </div>
+            <Icon name={open[s.code] ? 'ChevronUp' : 'ChevronDown'} size={16} className="text-white/30 group-hover:text-white/60 flex-shrink-0" />
+          </button>
 
           {/* Системы */}
-          {s.systems.map((sys, sysIdx) => (
-            <div key={sysIdx} className="py-5 border-b border-white/5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="text-base font-bold text-white">{sys.name}</div>
-                <span className="text-xs px-2 py-0.5 rounded font-semibold text-[var(--neon)] bg-[var(--neon)]/10">{sys.voltage}</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {ALL_MOUNT_TYPES.map(mt => {
-                  const active = sys.types.includes(mt.id);
-                  return (
-                    <button key={mt.id} onClick={() => toggleType(s.code, sysIdx, mt.id)}
-                      className={`flex items-center gap-2 text-sm px-4 py-2 rounded-xl font-medium transition-all ${
-                        active
-                          ? 'bg-[var(--neon)]/15 text-[var(--neon)] border border-[var(--neon)]/40'
-                          : 'bg-white/5 text-white/35 border border-transparent hover:text-white/60 hover:bg-white/8'
-                      }`}>
-                      <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all ${active ? 'bg-[var(--neon)]' : 'bg-white/10'}`}>
-                        {active && <Icon name="Check" size={10} className="text-white" />}
-                      </div>
-                      {mt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-
-          {s.status === 'waiting' && (
-            <div className="flex items-center gap-2 py-4 text-amber-400/70">
-              <Icon name="Clock" size={14} className="flex-shrink-0" />
-              <span className="text-sm">Ожидаем доступ из ЛК. После получения — загрузите прайс и остатки во вкладке «Товары».</span>
+          {open[s.code] && (
+            <div className="ml-14 mb-2 space-y-px">
+              {s.systems.map((sys, idx) => (
+                <div key={idx} className="flex items-center gap-3 py-3 border-t border-white/5 first:border-0">
+                  {/* Название + вольтаж — в одну строку */}
+                  <div className="flex items-center gap-2 w-52 flex-shrink-0">
+                    <span className="text-sm font-semibold text-white whitespace-nowrap">{sys.name}</span>
+                    <span className="text-xs px-1.5 py-0.5 rounded text-[var(--neon)] bg-[var(--neon)]/10 font-semibold whitespace-nowrap">{sys.voltage}</span>
+                  </div>
+                  {/* Типы монтажа — в одну строку */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {ALL_MOUNT_TYPES.map(mt => {
+                      const active = sys.types.includes(mt.id);
+                      return (
+                        <button key={mt.id} onClick={() => toggleType(s.code, idx, mt.id)}
+                          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap ${
+                            active ? 'bg-[var(--neon)]/15 text-[var(--neon)]' : 'bg-white/5 text-white/35 hover:text-white/60 hover:bg-white/8'
+                          }`}>
+                          <div className={`w-3 h-3 rounded flex items-center justify-center flex-shrink-0 ${active ? 'bg-[var(--neon)]' : 'bg-white/15'}`}>
+                            {active && <Icon name="Check" size={8} className="text-white" />}
+                          </div>
+                          {mt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              {s.status === 'waiting' && (
+                <div className="flex items-center gap-2 py-3 text-amber-400/60 text-xs border-t border-white/5">
+                  <Icon name="Clock" size={12} className="flex-shrink-0" />
+                  <span>Ожидаем доступ из ЛК. После получения — загрузите данные во вкладке «Товары».</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -158,48 +159,102 @@ function SuppliersTab() {
   );
 }
 
-// ─── Системы ─────────────────────────────────────────────────────────────────
-function SystemsTab({ onDrillDown }: { onDrillDown: (supplierId: number, seriesId: number) => void }) {
-  const [catalog, setCatalog] = useState<Supplier[]>([]);
-  const [loading, setLoading] = useState(true);
+// ─── Категории товаров (CRUD) ─────────────────────────────────────────────────
+function CategoriesTab() {
+  const [cats, setCats] = useState(ALL_CATEGORIES.map(c => ({ ...c, enabled: true, order: ALL_CATEGORIES.indexOf(c) })));
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [editLabel, setEditLabel] = useState('');
+  const [editEmoji, setEditEmoji] = useState('');
+  const [addMode, setAddMode] = useState(false);
+  const [newKey, setNewKey] = useState('');
+  const [newLabel, setNewLabel] = useState('');
+  const [newEmoji, setNewEmoji] = useState('');
 
-  useEffect(() => {
-    getCatalogHierarchy().then(d => { setCatalog(d); setLoading(false); });
-  }, []);
+  const startEdit = (i: number) => {
+    setEditIdx(i);
+    setEditLabel(cats[i].label);
+    setEditEmoji(cats[i].emoji);
+  };
 
-  if (loading) return <div className="text-center py-16 text-white/20 text-sm animate-pulse">Загружаю...</div>;
+  const saveEdit = () => {
+    if (editIdx === null) return;
+    setCats(prev => prev.map((c, i) => i === editIdx ? { ...c, label: editLabel, emoji: editEmoji } : c));
+    setEditIdx(null);
+  };
+
+  const addCat = () => {
+    if (!newKey || !newLabel) return;
+    setCats(prev => [...prev, { key: newKey.toLowerCase().replace(/\s+/g, '_'), label: newLabel, emoji: newEmoji || '📦', enabled: true, order: prev.length }]);
+    setNewKey(''); setNewLabel(''); setNewEmoji(''); setAddMode(false);
+  };
+
+  const toggle = (i: number) => setCats(prev => prev.map((c, idx) => idx === i ? { ...c, enabled: !c.enabled } : c));
 
   return (
     <div>
-      {catalog.map(sup => (
-        <div key={sup.id}>
-          {/* Шапка поставщика */}
-          <div className="flex items-center gap-5 py-6 border-b border-white/8">
-            <img src={ARLIGHT_LOGO} alt={sup.name} className="w-20 h-20 rounded-2xl object-cover flex-shrink-0" />
-            <div>
-              <div className="text-2xl font-black text-white">{sup.name}</div>
-              <div className="text-sm text-white/40 mt-1">{sup.series.reduce((s, sr) => s + sr.product_count, 0)} товаров</div>
-            </div>
-          </div>
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-white/40 text-sm">{cats.filter(c => c.enabled).length} из {cats.length} активны</span>
+        <button onClick={() => setAddMode(p => !p)}
+          className="ml-auto flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl bg-[var(--neon)]/15 text-[var(--neon)] hover:bg-[var(--neon)]/25 transition-all font-medium">
+          <Icon name="Plus" size={14} /> Новая категория
+        </button>
+      </div>
 
-          {/* Системы */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-6">
-            {sup.series.map(series => (
-              <button key={series.id} onClick={() => onDrillDown(sup.id, series.id)}
-                className="group text-left p-5 rounded-2xl bg-white/4 hover:bg-[var(--neon)]/10 border border-white/6 hover:border-[var(--neon)]/30 transition-all">
-                <div className="text-3xl mb-3">🔆</div>
-                <div className="font-bold text-white text-base group-hover:text-[var(--neon)] transition-colors">{series.name}</div>
-                <div className="flex items-center gap-2 mt-2">
-                  {series.voltage && (
-                    <span className="text-xs px-2 py-0.5 rounded font-semibold text-[var(--neon)] bg-[var(--neon)]/10">{series.voltage}В</span>
-                  )}
-                  <span className="text-xs text-white/30">{series.product_count} поз.</span>
-                </div>
-                <div className="mt-3 text-white/25 text-xs group-hover:text-[var(--neon)]/60 transition-colors flex items-center gap-1">
-                  Открыть товары <Icon name="ArrowRight" size={11} />
-                </div>
-              </button>
-            ))}
+      {/* Форма добавления */}
+      {addMode && (
+        <div className="flex items-center gap-2 mb-4 py-3 border-b border-white/8">
+          <input value={newEmoji} onChange={e => setNewEmoji(e.target.value)} placeholder="😀" className="w-14 text-center bg-white/6 text-white rounded-xl text-lg px-2 py-2 focus:outline-none" />
+          <input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Название категории *" className={inputCls} />
+          <input value={newKey} onChange={e => setNewKey(e.target.value)} placeholder="ключ (латиница)" className="bg-white/6 text-white rounded-xl text-sm px-3 py-2 focus:outline-none w-40 placeholder:text-white/25" />
+          <button onClick={addCat} disabled={!newKey || !newLabel}
+            className="neon-btn text-white text-sm px-4 py-2 rounded-xl font-semibold flex-shrink-0 disabled:opacity-40">
+            Добавить
+          </button>
+          <button onClick={() => setAddMode(false)} className="text-white/30 hover:text-white transition-colors flex-shrink-0">
+            <Icon name="X" size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Список категорий */}
+      {cats.map((cat, i) => (
+        <div key={cat.key} className={`flex items-center gap-3 py-3 border-b border-white/5 last:border-0 ${!cat.enabled ? 'opacity-40' : ''}`}>
+          {/* Эмодзи */}
+          {editIdx === i ? (
+            <input value={editEmoji} onChange={e => setEditEmoji(e.target.value)}
+              className="w-10 text-center bg-white/8 text-white rounded-lg text-lg px-1 py-1 focus:outline-none" />
+          ) : (
+            <span className="text-xl w-10 text-center flex-shrink-0">{cat.emoji}</span>
+          )}
+
+          {/* Название */}
+          {editIdx === i ? (
+            <input autoFocus value={editLabel} onChange={e => setEditLabel(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && saveEdit()}
+              className="flex-1 bg-white/8 text-white rounded-lg text-sm px-3 py-1.5 focus:outline-none" />
+          ) : (
+            <span className={`flex-1 text-sm font-medium ${cat.enabled ? 'text-white' : 'text-white/50'}`}>{cat.label}</span>
+          )}
+
+          {/* Ключ */}
+          <span className="text-xs text-white/20 font-mono w-36 truncate flex-shrink-0">{cat.key}</span>
+
+          {/* Действия */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {editIdx === i ? (
+              <>
+                <button onClick={saveEdit} className="text-[var(--neon)] hover:opacity-70 p-1 transition-opacity"><Icon name="Check" size={15} /></button>
+                <button onClick={() => setEditIdx(null)} className="text-white/30 hover:text-white p-1 transition-colors"><Icon name="X" size={15} /></button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => startEdit(i)} className="text-white/20 hover:text-white p-1 transition-colors"><Icon name="Pencil" size={14} /></button>
+                <button onClick={() => toggle(i)}
+                  className={`p-1 transition-colors ${cat.enabled ? 'text-white/20 hover:text-amber-400' : 'text-white/20 hover:text-green-400'}`}>
+                  <Icon name={cat.enabled ? 'EyeOff' : 'Eye'} size={14} />
+                </button>
+              </>
+            )}
           </div>
         </div>
       ))}
@@ -219,14 +274,13 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
   const [saving, setSaving] = useState(false);
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
   const [priceVal, setPriceVal] = useState('');
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const load = () => {
     setLoading(true);
-    getCatalogHierarchy().then(d => {
+    getCatalogHierarchy().then((d: Supplier[]) => {
       setCatalog(d);
       if (initSeriesId) {
-        const sup = d.find((s: Supplier) => s.series.some((sr: Series) => sr.id === initSeriesId));
+        const sup = d.find(s => s.series.some(sr => sr.id === initSeriesId));
         if (sup) setSelectedSup(sup.id);
       }
       setLoading(false);
@@ -242,8 +296,7 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
     if (!selectedSeries || !form.article || !form.name) return;
     setSaving(true);
     await addProduct({ series_id: selectedSeries, article: form.article, name: form.name, category: selectedCat ?? form.category, voltage: form.voltage ? Number(form.voltage) : undefined, unit: form.unit, price: form.price ? Number(form.price) : undefined });
-    setSaving(false);
-    setAddingForm(false);
+    setSaving(false); setAddingForm(false);
     setForm(p => ({ ...p, article: '', name: '', voltage: '', price: '' }));
     load();
   };
@@ -251,22 +304,19 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
   const handleDelete = async (id: number) => { await deleteProduct(id); load(); };
   const savePrice = async (id: number) => { await updateProductPrice(id, Number(priceVal)); setEditingPrice(null); load(); };
 
-  const inp = "bg-white/6 border-0 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50 placeholder:text-white/25 w-full";
+  if (loading) return <div className="py-16 text-center text-white/20 text-sm animate-pulse">Загружаю...</div>;
 
-  if (loading) return <div className="text-center py-16 text-white/20 text-sm animate-pulse">Загружаю...</div>;
+  const catEmoji = (key: string) => ALL_CATEGORIES.find(c => c.key === key)?.emoji ?? '📦';
 
   return (
-    <div className="space-y-4">
-
+    <div className="space-y-3">
       {/* Поставщики */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {catalog.map(sup => (
           <button key={sup.id}
             onClick={() => { setSelectedSup(sup.id); setSelectedSeries(null); setSelectedCat(null); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-              selectedSup === sup.id ? 'bg-[var(--neon)] text-white' : 'bg-white/6 text-white/50 hover:text-white hover:bg-white/10'
-            }`}>
-            <img src={ARLIGHT_LOGO} alt="" className="w-5 h-5 rounded object-cover" />
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all ${selectedSup === sup.id ? 'bg-[var(--neon)] text-white' : 'bg-white/6 text-white/50 hover:text-white hover:bg-white/10'}`}>
+            <img src={ARLIGHT_LOGO} alt="" className="w-4 h-4 rounded object-cover" />
             {sup.name}
           </button>
         ))}
@@ -278,11 +328,8 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
           {catalog.find(s => s.id === selectedSup)?.series.map(sr => (
             <button key={sr.id}
               onClick={() => { setSelectedSeries(sr.id); setSelectedCat(null); }}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                selectedSeries === sr.id ? 'bg-white/15 text-white border border-white/20' : 'bg-white/4 text-white/40 hover:text-white/70 hover:bg-white/8'
-              }`}>
-              {sr.name}
-              <span className="ml-2 text-xs opacity-50">{sr.product_count}</span>
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${selectedSeries === sr.id ? 'bg-white/15 text-white' : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/8'}`}>
+              {sr.name} <span className="text-xs opacity-50 ml-1">{sr.product_count}</span>
             </button>
           ))}
         </div>
@@ -294,89 +341,84 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
           {currentSeries?.categories.map(cat => (
             <button key={cat.key}
               onClick={() => setSelectedCat(cat.key)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
-                selectedCat === cat.key ? 'bg-white/15 text-white' : 'bg-white/4 text-white/40 hover:text-white/70 hover:bg-white/7'
-              }`}>
-              <span>{CAT_EMOJI[cat.key] ?? '📦'}</span>
-              {cat.label}
-              <span className="text-xs opacity-50">{cat.products.length}</span>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${selectedCat === cat.key ? 'bg-white/15 text-white' : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/8'}`}>
+              <span>{catEmoji(cat.key)}</span> {cat.label} <span className="text-xs opacity-50">{cat.products.length}</span>
             </button>
           ))}
         </div>
       )}
 
-      {/* Таблица товаров */}
+      {/* Товары */}
       {selectedCat && (
         <div>
           {/* Заголовок */}
-          <div className="flex items-center gap-3 py-4 border-b border-white/8">
-            <span className="text-xl">{CAT_EMOJI[selectedCat] ?? '📦'}</span>
-            <span className="text-lg font-bold text-white">{currentCat?.label}</span>
-            <span className="text-sm text-white/30">{products.length} позиций</span>
+          <div className="flex items-center gap-3 py-3 border-b border-white/8">
+            <span className="text-lg">{catEmoji(selectedCat)}</span>
+            <span className="font-bold text-white">{currentCat?.label}</span>
+            <span className="text-sm text-white/30">{products.length} поз.</span>
             <button onClick={() => setAddingForm(p => !p)}
-              className="ml-auto flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl bg-[var(--neon)]/15 text-[var(--neon)] hover:bg-[var(--neon)]/25 transition-all font-medium">
-              <Icon name="Plus" size={14} /> Добавить
+              className="ml-auto flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-xl bg-[var(--neon)]/15 text-[var(--neon)] hover:bg-[var(--neon)]/25 transition-all font-medium">
+              <Icon name="Plus" size={13} /> Добавить
             </button>
           </div>
 
-          {/* Форма добавления */}
+          {/* Форма */}
           {addingForm && (
-            <div className="py-4 border-b border-white/8 grid grid-cols-2 gap-3">
-              <input value={form.article} onChange={e => setForm(p => ({...p, article: e.target.value}))} placeholder="Артикул *" className={inp} />
-              <input value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder="Название *" className={inp} />
-              <select value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))} className={inp + ' col-span-1'}>
-                {CATEGORY_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-[#111]">{o.label}</option>)}
-              </select>
+            <div className="py-3 border-b border-white/8 space-y-2">
               <div className="flex gap-2">
-                <input value={form.voltage} onChange={e => setForm(p => ({...p, voltage: e.target.value}))} placeholder="В" className="bg-white/6 border-0 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50 placeholder:text-white/25 w-20" />
-                <input value={form.unit} onChange={e => setForm(p => ({...p, unit: e.target.value}))} placeholder="ед." className="bg-white/6 border-0 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50 placeholder:text-white/25 w-20" />
-                <input value={form.price} onChange={e => setForm(p => ({...p, price: e.target.value}))} placeholder="Цена ₽" className="bg-white/6 border-0 text-white rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50 placeholder:text-white/25 flex-1" />
+                <input value={form.article} onChange={e => setForm(p => ({...p, article: e.target.value}))} placeholder="Артикул *" className={inputCls} />
+                <input value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder="Название *" className={inputCls} />
               </div>
-              <div className="col-span-2 flex gap-2">
+              <div className="flex gap-2">
+                <select value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))} className="bg-white/6 text-white rounded-xl text-sm px-3 py-2 focus:outline-none flex-1">
+                  {ALL_CATEGORIES.map(o => <option key={o.key} value={o.key} className="bg-[#111]">{o.emoji} {o.label}</option>)}
+                </select>
+                <input value={form.voltage} onChange={e => setForm(p => ({...p, voltage: e.target.value}))} placeholder="В" className="bg-white/6 text-white rounded-xl text-sm px-3 py-2 focus:outline-none w-16 placeholder:text-white/25" />
+                <input value={form.unit} onChange={e => setForm(p => ({...p, unit: e.target.value}))} placeholder="ед." className="bg-white/6 text-white rounded-xl text-sm px-3 py-2 focus:outline-none w-16 placeholder:text-white/25" />
+                <input value={form.price} onChange={e => setForm(p => ({...p, price: e.target.value}))} placeholder="Цена ₽" className="bg-white/6 text-white rounded-xl text-sm px-3 py-2 focus:outline-none w-28 placeholder:text-white/25" />
+              </div>
+              <div className="flex gap-2">
                 <button onClick={handleAdd} disabled={saving || !form.article || !form.name}
                   className="neon-btn text-white text-sm px-5 py-2 rounded-xl font-semibold disabled:opacity-40">
-                  {saving ? 'Сохраняю...' : 'Добавить товар'}
+                  {saving ? 'Сохраняю...' : 'Добавить'}
                 </button>
-                <button onClick={() => setAddingForm(false)} className="text-white/30 text-sm hover:text-white px-3 transition-colors">Отмена</button>
+                <button onClick={() => setAddingForm(false)} className="text-white/30 text-sm hover:text-white px-2 transition-colors">Отмена</button>
               </div>
             </div>
           )}
 
-          {/* Шапка таблицы */}
-          <div className="flex items-center gap-4 py-2.5 text-xs text-white/25 uppercase tracking-wider">
-            <span className="w-36 flex-shrink-0">Артикул</span>
+          {/* Шапка */}
+          <div className="flex items-center gap-4 py-2 text-xs text-white/25 uppercase tracking-wider">
+            <span className="w-32 flex-shrink-0">Артикул</span>
             <span className="flex-1">Название</span>
-            <span className="w-10 text-right">Ед.</span>
-            <span className="w-28 text-right">Цена</span>
-            <span className="w-6" />
+            <span className="w-8 text-right">Ед.</span>
+            <span className="w-24 text-right">Цена</span>
+            <span className="w-5" />
           </div>
 
-          {products.length === 0 && (
-            <div className="py-12 text-center text-white/20 text-sm">Нет товаров в этой категории</div>
-          )}
+          {products.length === 0 && <div className="py-10 text-center text-white/20 text-sm">Пусто</div>}
 
           {products.map(p => (
-            <div key={p.id} className="flex items-center gap-4 py-3 border-t border-white/5 group hover:bg-white/2 rounded-lg -mx-2 px-2 transition-colors">
-              <span className="font-mono text-white/35 text-xs w-36 flex-shrink-0 truncate">{p.article}</span>
+            <div key={p.id} className="flex items-center gap-4 py-2.5 border-t border-white/5 group hover:bg-white/2 rounded-lg transition-colors">
+              <span className="font-mono text-white/30 text-xs w-32 flex-shrink-0 truncate">{p.article}</span>
               <span className="flex-1 text-white text-sm truncate">{p.name}</span>
-              <span className="text-white/30 text-xs w-10 text-right flex-shrink-0">{p.unit}</span>
+              <span className="text-white/30 text-xs w-8 text-right">{p.unit}</span>
               {editingPrice === p.id ? (
-                <div className="flex items-center gap-1.5 w-28 justify-end">
+                <div className="flex items-center gap-1 w-24 justify-end">
                   <input autoFocus value={priceVal} onChange={e => setPriceVal(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && savePrice(p.id)}
-                    className="w-20 bg-white/10 text-white text-sm px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--neon)]/50" />
-                  <button onClick={() => savePrice(p.id)} className="text-[var(--neon)] hover:opacity-70"><Icon name="Check" size={14} /></button>
-                  <button onClick={() => setEditingPrice(null)} className="text-white/20 hover:text-white"><Icon name="X" size={14} /></button>
+                    className="w-16 bg-white/10 text-white text-sm px-2 py-1 rounded-lg focus:outline-none" />
+                  <button onClick={() => savePrice(p.id)} className="text-[var(--neon)]"><Icon name="Check" size={13} /></button>
+                  <button onClick={() => setEditingPrice(null)} className="text-white/20"><Icon name="X" size={13} /></button>
                 </div>
               ) : (
                 <button onClick={() => { setEditingPrice(p.id); setPriceVal(String(p.price ?? '')); }}
-                  className="w-28 text-right font-semibold text-white hover:text-[var(--neon)] transition-colors text-sm">
-                  {p.price != null ? `${p.price.toLocaleString('ru')} ₽` : <span className="text-white/20 font-normal">— ₽</span>}
+                  className="w-24 text-right text-white text-sm font-semibold hover:text-[var(--neon)] transition-colors">
+                  {p.price != null ? `${p.price.toLocaleString('ru')} ₽` : <span className="text-white/20 font-normal">—</span>}
                 </button>
               )}
-              <button onClick={() => handleDelete(p.id)}
-                className="w-6 opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 transition-all flex-shrink-0">
-                <Icon name="Trash2" size={14} />
+              <button onClick={() => handleDelete(p.id)} className="w-5 opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 transition-all">
+                <Icon name="Trash2" size={13} />
               </button>
             </div>
           ))}
@@ -384,13 +426,8 @@ function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
       )}
 
       {!selectedSup && (
-        <div className="py-20 text-center">
-          <div className="text-5xl mb-4">📦</div>
-          <div className="text-white/30 text-sm">Выбери поставщика, систему и категорию</div>
-        </div>
+        <div className="py-20 text-center text-white/20 text-sm">Выбери поставщика → систему → категорию</div>
       )}
-
-      <input ref={fileRef} type="file" accept=".json" className="hidden" />
     </div>
   );
 }
@@ -401,27 +438,21 @@ export default function Settings() {
   const [tab, setTab] = useState<'screens' | 'suppliers' | 'categories' | 'products'>('screens');
   const [drillSeriesId, setDrillSeriesId] = useState<number | undefined>();
 
-  const handleDrillDown = (_supId: number, seriesId: number) => {
-    setDrillSeriesId(seriesId);
-    setTab('products');
-  };
-
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
-      <header className="flex items-center gap-4 px-8 py-5 border-b border-white/6 sticky top-0 z-40 bg-[var(--bg-primary)]/95 backdrop-blur-sm">
-        <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm">
-          <Icon name="ArrowLeft" size={16} /> Назад
+      {/* Хедер с табами в одну строку */}
+      <header className="flex items-center gap-6 px-8 py-4 border-b border-white/6 sticky top-0 z-40 bg-[var(--bg-primary)]/95 backdrop-blur-sm">
+        <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm flex-shrink-0">
+          <Icon name="ArrowLeft" size={15} /> Назад
         </button>
-        <span className="text-lg font-black text-white">Настройки</span>
-
-        {/* Табы в хедере */}
-        <div className="ml-8 flex gap-1 bg-white/5 p-1 rounded-2xl">
+        <span className="text-base font-black text-white flex-shrink-0">Настройки</span>
+        <div className="flex gap-1 bg-white/5 p-1 rounded-2xl">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key as typeof tab)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                tab === t.key ? 'bg-[var(--neon)] text-white shadow-[0_0_16px_rgba(61,90,254,0.4)]' : 'text-white/40 hover:text-white/70'
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
+                tab === t.key ? 'bg-[var(--neon)] text-white shadow-[0_0_16px_rgba(61,90,254,0.35)]' : 'text-white/40 hover:text-white/70'
               }`}>
-              <Icon name={t.icon as Parameters<typeof Icon>[0]['name']} size={14} />
+              <Icon name={t.icon as Parameters<typeof Icon>[0]['name']} size={13} />
               {t.label}
             </button>
           ))}
@@ -431,7 +462,7 @@ export default function Settings() {
       <div className="max-w-3xl mx-auto px-8 py-8">
         {tab === 'screens'    && <AdminScreensTab />}
         {tab === 'suppliers'  && <SuppliersTab />}
-        {tab === 'categories' && <SystemsTab onDrillDown={handleDrillDown} />}
+        {tab === 'categories' && <CategoriesTab />}
         {tab === 'products'   && <ProductsTab initSeriesId={drillSeriesId} />}
       </div>
     </div>
