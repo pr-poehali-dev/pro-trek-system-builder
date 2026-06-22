@@ -52,9 +52,9 @@ const SUPPLIERS_DEFAULT: SupplierDef[] = [
 
 const TABS = [
   { key: 'screens',    label: 'Экраны',          icon: 'Image'     },
-  { key: 'suppliers',  label: 'Поставщики',       icon: 'Building2' },
-  { key: 'categories', label: 'Категории',        icon: 'Tag'       },
-  { key: 'products',   label: 'Товары',           icon: 'Package'   },
+  { key: 'suppliers',  label: 'Поставщики',  icon: 'Building2' },
+  { key: 'categories', label: 'Системы',     icon: 'Layers'    },
+  { key: 'products',   label: 'Товары',      icon: 'Package'   },
 ];
 
 // ─── Вкладка Поставщики ───────────────────────────────────────────────────────
@@ -157,67 +157,53 @@ function SuppliersTab() {
   );
 }
 
-// ─── Вкладка Категории ────────────────────────────────────────────────────────
-function CategoriesTab({ onDrillDown }: { onDrillDown: (supplierId: number, seriesId: number, catKey: string) => void }) {
+// ─── Вкладка Системы ─────────────────────────────────────────────────────────
+function SystemsTab({ onDrillDown }: { onDrillDown: (supplierId: number, seriesId: number) => void }) {
   const [catalog, setCatalog] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openSeries, setOpenSeries] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     getCatalogHierarchy().then(d => { setCatalog(d); setLoading(false); });
   }, []);
 
-  if (loading) return <div className="text-center py-12 text-white/30 text-sm animate-pulse">Загружаю каталог...</div>;
+  if (loading) return <div className="text-center py-12 text-white/30 text-sm animate-pulse">Загружаю...</div>;
 
   return (
     <div className="space-y-4">
       <div className="pro-card p-4 flex items-start gap-3">
         <Icon name="Info" size={14} className="text-[var(--neon)] flex-shrink-0 mt-0.5" />
         <div className="text-xs text-white/60 leading-relaxed">
-          Структура каталога: <strong className="text-white">Поставщик → Система → Категория</strong>. Нажми на категорию чтобы перейти к товарам.
+          Выбери систему чтобы перейти к её товарам.
         </div>
       </div>
 
       {catalog.map(sup => (
         <div key={sup.id} className="pro-card overflow-hidden">
+          {/* Шапка поставщика */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)]"
             style={{ background: `linear-gradient(135deg, ${SUPPLIER_COLORS[sup.code] ?? '#fff'}12, transparent)` }}>
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: SUPPLIER_COLORS[sup.code] ?? '#fff' }} />
+            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: SUPPLIER_COLORS[sup.code] ?? '#fff' }} />
             <span className="font-black text-white text-sm">{sup.name}</span>
             <span className="text-[10px] text-white/30 ml-1">{sup.series.reduce((s, sr) => s + sr.product_count, 0)} товаров</span>
           </div>
 
-          {sup.series.map(series => (
-            <div key={series.id} className="border-b border-[var(--border)] last:border-0">
-              <button onClick={() => setOpenSeries(p => ({ ...p, [series.id]: !p[series.id] }))}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/3 transition-colors">
-                <Icon name={openSeries[series.id] ? 'ChevronDown' : 'ChevronRight'} size={13} className="text-white/30" />
-                <span className="font-bold text-sm text-white">{series.name}</span>
+          {/* Системы — кликабельные строки */}
+          <div className="divide-y divide-[var(--border)]">
+            {sup.series.map(series => (
+              <button key={series.id}
+                onClick={() => onDrillDown(sup.id, series.id)}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--neon)]/5 hover:border-l-2 hover:border-[var(--neon)] transition-all text-left group">
+                <span className="font-bold text-sm text-white group-hover:text-[var(--neon)] transition-colors">{series.name}</span>
                 {series.voltage && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: `${SUPPLIER_COLORS[sup.code]}22`, color: SUPPLIER_COLORS[sup.code] }}>
                     {series.voltage}В
                   </span>
                 )}
                 <span className="ml-auto text-[10px] text-white/30">{series.product_count} поз.</span>
+                <Icon name="ChevronRight" size={14} className="text-white/20 group-hover:text-[var(--neon)] transition-colors flex-shrink-0" />
               </button>
-
-              {openSeries[series.id] && (
-                <div className="px-4 pb-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {series.categories.map(cat => (
-                    <button key={cat.key}
-                      onClick={() => onDrillDown(sup.id, series.id, cat.key)}
-                      className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-[var(--border)] hover:border-[var(--neon)] hover:bg-[var(--neon)]/5 transition-all text-left group">
-                      <span className="text-xs text-white/70 group-hover:text-white font-medium truncate">{cat.label}</span>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <span className="text-[10px] text-white/30">{cat.products.length}</span>
-                        <Icon name="ChevronRight" size={11} className="text-white/20 group-hover:text-[var(--neon)]" />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ))}
     </div>
@@ -225,19 +211,27 @@ function CategoriesTab({ onDrillDown }: { onDrillDown: (supplierId: number, seri
 }
 
 // ─── Вкладка Товары ───────────────────────────────────────────────────────────
-function ProductsTab({ initSeriesId, initCatKey }: { initSeriesId?: number; initCatKey?: string }) {
+function ProductsTab({ initSeriesId }: { initSeriesId?: number }) {
   const [catalog, setCatalog] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSup, setSelectedSup] = useState<number | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<number | null>(initSeriesId ?? null);
-  const [selectedCat, setSelectedCat] = useState<string | null>(initCatKey ?? null);
+  const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [addingForm, setAddingForm] = useState(false);
-  const [form, setForm] = useState({ article: '', name: '', category: initCatKey ?? 'track', voltage: '', unit: 'шт', price: '' });
+  const [form, setForm] = useState({ article: '', name: '', category: 'track', voltage: '', unit: 'шт', price: '' });
   const [saving, setSaving] = useState(false);
 
   const load = () => {
     setLoading(true);
-    getCatalogHierarchy().then(d => { setCatalog(d); setLoading(false); });
+    getCatalogHierarchy().then(d => {
+      setCatalog(d);
+      // Автовыбор поставщика если пришли из вкладки Системы
+      if (initSeriesId) {
+        const sup = d.find((s: Supplier) => s.series.some((sr: Series) => sr.id === initSeriesId));
+        if (sup) setSelectedSup(sup.id);
+      }
+      setLoading(false);
+    });
   };
   useEffect(() => { load(); }, []);
 
@@ -410,11 +404,9 @@ export default function Settings() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<'screens' | 'suppliers' | 'categories' | 'products'>('screens');
   const [drillSeriesId, setDrillSeriesId] = useState<number | undefined>();
-  const [drillCatKey, setDrillCatKey] = useState<string | undefined>();
 
-  const handleDrillDown = (_supId: number, seriesId: number, catKey: string) => {
+  const handleDrillDown = (_supId: number, seriesId: number) => {
     setDrillSeriesId(seriesId);
-    setDrillCatKey(catKey);
     setTab('products');
   };
 
@@ -448,8 +440,8 @@ export default function Settings() {
 
         {tab === 'screens'    && <AdminScreensTab />}
         {tab === 'suppliers'  && <SuppliersTab />}
-        {tab === 'categories' && <CategoriesTab onDrillDown={handleDrillDown} />}
-        {tab === 'products'   && <ProductsTab initSeriesId={drillSeriesId} initCatKey={drillCatKey} />}
+        {tab === 'categories' && <SystemsTab onDrillDown={handleDrillDown} />}
+        {tab === 'products'   && <ProductsTab initSeriesId={drillSeriesId} />}
       </div>
     </div>
   );
