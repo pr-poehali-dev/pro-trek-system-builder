@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { ProjectState, ShapeType, Construction, ShapeDims } from '@/lib/types';
 import { SHAPE_META, calcConstruction } from '@/lib/shapes';
 import ProgressBar from '@/components/ProgressBar';
@@ -203,15 +202,14 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
         )}
       </div>
 
-      {activeShape && createPortal(
+      {activeShape && (
         <AddShapeModal
           shape={activeShape}
           photo={shapePhotos[activeShape]}
           onAdd={handleAdd}
           onClose={() => setActiveShape(null)}
           onReplacePhoto={url => setShapePhoto(activeShape, url)}
-        />,
-        document.body
+        />
       )}
     </div>
   );
