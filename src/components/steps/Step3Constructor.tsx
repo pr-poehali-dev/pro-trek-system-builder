@@ -151,11 +151,11 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
         </div>
 
         {!ready && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            {[1,2,3,4,5].map(i => <div key={i} className="aspect-[4/3] rounded-2xl bg-white/5 animate-pulse" />)}
+          <div className="grid grid-cols-5 gap-5">
+            {[1,2,3,4,5].map(i => <div key={i} className="aspect-[3/2] rounded-2xl bg-white/5 animate-pulse" />)}
           </div>
         )}
-        <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 ${!ready ? 'hidden' : ''}`}>
+        <div className={`grid grid-cols-5 gap-5 ${!ready ? 'hidden' : ''}`}>
           {SHAPES.map(shape => (
             <div
               key={shape}
@@ -163,7 +163,7 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
             >
               {/* Фото — клик открывает модалку, карандашик заменяет */}
               <div
-                className="aspect-[4/3] bg-[#c8cad4] overflow-hidden relative cursor-pointer"
+                className="aspect-[3/2] bg-[#c8cad4] overflow-hidden relative cursor-pointer"
                 onClick={() => setActiveShape(shape)}
               >
                 <ImageUpload
