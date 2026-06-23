@@ -187,22 +187,30 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
             <div className="text-sm">Спецификация пуста. Вернитесь и добавьте конструкции.</div>
           </div>
         ) : (
-          <div className={`space-y-4 transition-opacity duration-200 ${recalcLoading ? 'opacity-30 pointer-events-none' : ''}`}>
+          <div className={`space-y-3 transition-opacity duration-200 ${recalcLoading ? 'opacity-30 pointer-events-none' : ''}`}>
             {CATEGORY_ORDER.filter(cat => grouped[cat]?.length).map(cat => (
               <div key={cat} className="pro-card overflow-hidden">
+
                 {/* Заголовок группы */}
-                <div className="flex items-center gap-2.5 px-4 py-3 bg-[var(--bg-secondary)] border-b border-[var(--border)]">
-                  <div className="w-6 h-6 rounded-lg bg-[rgba(61,90,254,0.12)] flex items-center justify-center flex-shrink-0">
-                    <Icon name={CATEGORY_ICONS[cat] as Parameters<typeof Icon>[0]['name']} size={12} className="text-[var(--neon)]" />
+                <div className="flex items-center gap-2.5 px-4 py-2.5 bg-white/4 border-b border-[var(--border)]">
+                  <div className="w-5 h-5 rounded-md bg-[rgba(61,90,254,0.15)] flex items-center justify-center flex-shrink-0">
+                    <Icon name={CATEGORY_ICONS[cat] as Parameters<typeof Icon>[0]['name']} size={11} className="text-[var(--neon)]" />
                   </div>
-                  <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">{CATEGORY_LABELS[cat]}</span>
-                  <span className="ml-auto text-[10px] text-[var(--text-muted)] bg-[var(--bg-primary)] px-2 py-0.5 rounded-full">
-                    {grouped[cat].length} поз.
-                  </span>
+                  <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wide">{CATEGORY_LABELS[cat]}</span>
+                  <span className="ml-auto text-[10px] text-[var(--text-muted)]">{grouped[cat].length} поз.</span>
                 </div>
 
-                {/* Строки товаров */}
-                <div className="divide-y divide-[var(--border)]">
+                {/* Шапка таблицы */}
+                <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[var(--border)] bg-white/2">
+                  <span className="font-mono text-[10px] text-white/25 w-28 flex-shrink-0">Артикул</span>
+                  <span className="flex-1 text-[10px] text-white/25">Наименование</span>
+                  <span className="w-14 text-right text-[10px] text-white/25 flex-shrink-0">Кол-во</span>
+                  <span className="w-20 text-right text-[10px] text-white/25 flex-shrink-0">Цена</span>
+                  <span className="w-20 text-right text-[10px] text-white/25 flex-shrink-0">Сумма</span>
+                </div>
+
+                {/* Строки */}
+                <div>
                   {grouped[cat].map(item => {
                     const choice = state.angleChoices[item.article] || item.selected_option || 'cut_45';
                     let displayPrice = item.price;
@@ -213,84 +221,37 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
                       else displayPrice = 0;
                     }
                     const total = (displayPrice ?? 0) * item.qty;
-                    const imgSrc = itemImages[item.article] || item.image_url;
 
                     return (
-                      <div key={item.article} className="flex items-center gap-0 hover:bg-[var(--bg-secondary)] transition-colors">
-                        {/* Картинка слева */}
-                        <div className="w-16 h-16 flex-shrink-0 bg-[var(--bg-secondary)] border-r border-[var(--border)] overflow-hidden">
-                          {imgSrc ? (
-                            <ImageUpload
-                              src={imgSrc}
-                              alt={item.name}
-                              className="w-full h-full"
-                              imgClassName="w-full h-full object-cover"
-                              onReplace={url => setItemImages(prev => ({ ...prev, [item.article]: url }))}
+                      <div key={item.article} className="flex items-center gap-2 py-1.5 px-3 hover:bg-white/3 rounded-lg group text-xs border-b border-[var(--border)] last:border-0">
+                        <span className="font-mono text-white/40 w-28 flex-shrink-0 truncate">{item.article}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white/80 truncate">{item.name}</div>
+                          {item.category === 'connector_angle' && (
+                            <AngleSelector
+                              item={item}
+                              choice={choice}
+                              onChange={v => update({ angleChoices: { ...state.angleChoices, [item.article]: v } })}
                             />
-                          ) : (
-                            <div
-                              className="w-full h-full flex flex-col items-center justify-center gap-1 cursor-pointer group"
-                              onClick={() => {
-                                const input = document.createElement('input');
-                                input.type = 'file';
-                                input.accept = 'image/*';
-                                input.onchange = e => {
-                                  const file = (e.target as HTMLInputElement).files?.[0];
-                                  if (!file) return;
-                                  const reader = new FileReader();
-                                  reader.onload = ev => setItemImages(prev => ({ ...prev, [item.article]: ev.target?.result as string }));
-                                  reader.readAsDataURL(file);
-                                };
-                                input.click();
-                              }}
-                            >
-                              <span className="text-xl leading-none">{CATEGORY_PLACEHOLDER[item.category] ?? '📦'}</span>
-                              <span className="text-[8px] text-[var(--text-muted)] group-hover:text-[var(--neon)] transition-colors">фото</span>
-                            </div>
                           )}
                         </div>
-
-                        {/* Данные */}
-                        <div className="flex-1 px-4 py-3 min-w-0">
-                          <div className="flex items-start justify-between gap-3 flex-wrap">
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-semibold text-[var(--text-primary)] leading-tight">{item.name}</div>
-                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                <span className="text-[10px] text-[var(--text-muted)] font-mono">{item.article}</span>
-                                <span
-                                  className="text-[9px] px-1.5 py-0.5 rounded-full font-bold text-white"
-                                  style={{ backgroundColor: currentMeta.color, opacity: 0.85 }}
-                                >
-                                  {currentMeta.name}
-                                </span>
-                              </div>
-                              {item.category === 'connector_angle' && (
-                                <AngleSelector
-                                  item={item}
-                                  choice={choice}
-                                  onChange={v => update({ angleChoices: { ...state.angleChoices, [item.article]: v } })}
-                                />
-                              )}
-                            </div>
-
-                            {/* Кол-во и цена */}
-                            <div className="text-right flex-shrink-0">
-                              <div className="text-base font-black text-[var(--text-primary)]">{item.qty} <span className="text-xs font-normal text-[var(--text-muted)]">{item.unit}</span></div>
-                              {displayPrice != null && (
-                                <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
-                                  {displayPrice > 0 ? (
-                                    <>
-                                      <span>{Math.round(displayPrice).toLocaleString('ru')}₽ × {item.qty} = </span>
-                                      <span className="font-bold text-[var(--text-primary)]">{Math.round(total).toLocaleString('ru')}₽</span>
-                                    </>
-                                  ) : (
-                                    <span className="text-green-400">бесплатно</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                        <span className="w-14 text-right text-white/70 flex-shrink-0 font-semibold">
+                          {item.qty} <span className="text-white/30 font-normal">{item.unit}</span>
+                        </span>
+                        <span className="w-20 text-right flex-shrink-0 text-white/50">
+                          {displayPrice != null
+                            ? displayPrice > 0
+                              ? `${Math.round(displayPrice).toLocaleString('ru')} ₽`
+                              : <span className="text-green-400 text-[10px]">бесплатно</span>
+                            : <span className="text-white/20">—</span>
+                          }
+                        </span>
+                        <span className="w-20 text-right flex-shrink-0 font-bold text-white/80">
+                          {displayPrice != null && displayPrice > 0
+                            ? `${Math.round(total).toLocaleString('ru')} ₽`
+                            : ''
+                          }
+                        </span>
                       </div>
                     );
                   })}
