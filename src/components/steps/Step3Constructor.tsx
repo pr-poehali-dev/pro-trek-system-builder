@@ -171,7 +171,7 @@ export default function Step3Constructor({ state, update, next, back, totalSteps
                   src={shapePhotos[shape]}
                   alt={SHAPE_META[shape].label}
                   className="w-full h-full"
-                  imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  imgClassName="w-full h-full object-contain transition-transform duration-300"
                   onReplace={url => setShapePhoto(shape, url)}
                 />
               </div>
