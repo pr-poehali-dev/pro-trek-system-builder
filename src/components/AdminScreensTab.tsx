@@ -60,14 +60,22 @@ function ImageRow({ cardId, label, src, onReplace }: {
   const [saving, setSaving] = useState(false);
 
   const handleFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = async e => {
-      const data = e.target?.result as string;
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = async () => {
+      URL.revokeObjectURL(objectUrl);
+      const MAX = 1200;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const data = canvas.toDataURL('image/jpeg', 0.82);
       setSaving(true);
       await onReplace(cardId, data);
       setSaving(false);
     };
-    reader.readAsDataURL(file);
+    img.src = objectUrl;
   };
 
   const handleUrlSave = async () => {
