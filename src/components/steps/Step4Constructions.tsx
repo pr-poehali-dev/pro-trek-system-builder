@@ -157,18 +157,20 @@ export default function Step4Constructions({ state, update, next, back, totalSte
                     </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-24 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-[#c8cad4] flex items-center justify-center p-1">
-                    <img
-                      src={shapePhotos[c.shape as ShapeType] ?? SHAPE_PHOTOS_DEFAULT[c.shape]}
-                      alt={SHAPE_META[c.shape].label}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
+                {/* Картинка на всю ширину */}
+                <div className="w-full h-40 bg-[#c8cad4] overflow-hidden flex items-center justify-center p-3">
+                  <img
+                    src={shapePhotos[c.shape as ShapeType] ?? SHAPE_PHOTOS_DEFAULT[c.shape]}
+                    alt={SHAPE_META[c.shape].label}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                {/* Инфо под картинкой */}
+                <div className="flex items-center gap-3 px-4 py-3">
                   <div className="flex-1">
                     <div className="font-semibold text-[var(--text-primary)] text-sm">{SHAPE_META[c.shape].label}</div>
                     <div className="text-[var(--text-secondary)] text-xs mt-0.5">{formatDims(c)}</div>
-                    <div className="flex gap-3 mt-1.5 text-[10px] text-[var(--text-muted)]">
+                    <div className="flex gap-3 mt-1 text-[10px] text-[var(--text-muted)]">
                       <span>Длина: {c.totalLength} м</span>
                       <span>Углов: {c.cornersCount}</span>
                       {c.isClosed && <span className="text-[var(--neon)]">Замкнута</span>}
