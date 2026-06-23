@@ -1,0 +1,1 @@
+UPDATE card_images SET url = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/bucket/1b14201f-d874-4cd9-bb01-891b4fe8ac06.png', updated_at = NOW() WHERE key = 'step3' AND id = 'closed';
