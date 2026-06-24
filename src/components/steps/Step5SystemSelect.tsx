@@ -205,13 +205,14 @@ export default function Step5SystemSelect({ state, update, next, back, totalStep
                 className="pro-card p-0 overflow-hidden cursor-pointer transition-all duration-200 hover:border-[rgba(61,90,254,0.45)] hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)] group">
                 <div className="flex items-center gap-0">
 
-                  {/* Логотип — крупный, без подложки */}
+                  {/* Логотип — без белой подложки */}
                   <div className="w-20 h-20 flex-shrink-0 flex items-center justify-center p-2 relative">
                     <ImageUpload
                       src={logoSrc}
                       alt={sys.supplierName}
-                      className="w-16 h-16 rounded-2xl overflow-hidden"
-                      imgClassName="w-full h-full object-cover"
+                      className="w-16 h-16 rounded-2xl overflow-hidden bg-transparent"
+                      imgClassName="w-full h-full object-contain"
+                      imgStyle={{ mixBlendMode: 'screen' }}
                       onReplace={url => setLogos(prev => ({ ...prev, [sys.supplierCode]: url }))}
                     />
                     {/* Цветная полоска слева */}
