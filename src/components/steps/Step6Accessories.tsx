@@ -22,8 +22,10 @@ const CATEGORY_ICONS: Record<string, string> = {
   connector_flexible: 'Waypoints', end_cap: 'Square', mount: 'Link', power_inlet: 'Plug',
 };
 
-const SUPPLIERS_META: Record<string, { name: string; color: string; badge?: string }> = {
-  arlight: { name: 'Arlight', color: '#3d5afe' },
+const ARLIGHT_LOGO = 'https://cdn.poehali.dev/projects/a6ddce56-f505-4600-8cb8-11214a1f8087/files/67102236-293c-4925-b47f-e13686e93b7e.jpg';
+
+const SUPPLIERS_META: Record<string, { name: string; color: string; logo?: string; badge?: string }> = {
+  arlight: { name: 'Arlight', color: '#3d5afe', logo: ARLIGHT_LOGO },
 };
 
 const CATEGORY_PLACEHOLDER: Record<string, string> = {
@@ -113,11 +115,11 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
         <div className="pro-card p-4 mb-5">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm"
-                style={{ backgroundColor: currentMeta.color, boxShadow: `0 0 14px ${currentMeta.color}55` }}
-              >
-                {currentMeta.name.slice(0, 2).toUpperCase()}
+              <div className="w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0" style={{ boxShadow: `0 0 14px ${currentMeta.color}55` }}>
+                {currentMeta.logo
+                  ? <img src={currentMeta.logo} alt={currentMeta.name} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-white font-black text-sm" style={{ backgroundColor: currentMeta.color }}>{currentMeta.name.slice(0, 2).toUpperCase()}</div>
+                }
               </div>
               <div>
                 <div className="text-sm font-black text-white">{currentMeta.name}</div>
@@ -182,9 +184,8 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
                 <div key={cat}>
                   {/* Заголовок группы */}
                   <div className={`flex items-center gap-2 px-4 py-2.5 ${catIdx > 0 ? 'border-t border-white/5' : ''}`}>
-                    <Icon name={CATEGORY_ICONS[cat] as Parameters<typeof Icon>[0]['name']} size={11} className="text-white/30" />
-                    <span className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">{CATEGORY_LABELS[cat]}</span>
-                    <span className="ml-auto text-[10px] text-white/25">{grouped[cat].length} поз.</span>
+                    <Icon name={CATEGORY_ICONS[cat] as Parameters<typeof Icon>[0]['name']} size={11} className="text-white/60" />
+                    <span className="text-[11px] font-semibold text-white uppercase tracking-wider">{CATEGORY_LABELS[cat]}</span>
                   </div>
 
                   {/* Строки товаров */}
@@ -241,7 +242,7 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-semibold text-white leading-tight truncate">{item.name}</div>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[10px] text-white/35 font-mono">{item.article}</span>
+                              <span className="text-[10px] text-white/70 font-mono">{item.article}</span>
                             </div>
                             {item.category === 'connector_angle' && (
                               <AngleSelector
