@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { getCardImages, saveCardImage } from '@/lib/api';
 
 export function usePersistedImages(key: string, defaults: Record<string, string>) {
-  const [images, setImages] = useState<Record<string, string>>({});
+  // Стартуем сразу с дефолтами — картинки видны мгновенно, без мигания
+  const [images, setImages] = useState<Record<string, string>>(defaults);
   const [ready, setReady] = useState(false);
   const loaded = useRef(false);
 
@@ -10,9 +11,14 @@ export function usePersistedImages(key: string, defaults: Record<string, string>
     if (loaded.current) return;
     loaded.current = true;
     getCardImages(key).then(serverImages => {
-      setImages(serverImages);
+      // Мержим: дефолты + серверные (серверные побеждают только если есть)
+      setImages(Object.keys(serverImages).length > 0
+        ? { ...defaults, ...serverImages }
+        : defaults
+      );
       setReady(true);
     }).catch(() => {
+      // При ошибке остаёмся на дефолтах
       setReady(true);
     });
   }, [key]);
