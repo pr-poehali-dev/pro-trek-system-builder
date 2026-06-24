@@ -11,14 +11,18 @@ export function usePersistedImages(key: string, defaults: Record<string, string>
     if (loaded.current) return;
     loaded.current = true;
     getCardImages(key).then(serverImages => {
-      // Мержим: дефолты + серверные (серверные побеждают только если есть)
-      setImages(Object.keys(serverImages).length > 0
-        ? { ...defaults, ...serverImages }
-        : defaults
-      );
+      // Обновляем только те ключи, у которых серверный URL реально отличается от дефолта
+      const diff: Record<string, string> = {};
+      for (const k of Object.keys(serverImages)) {
+        if (serverImages[k] && serverImages[k] !== defaults[k]) {
+          diff[k] = serverImages[k];
+        }
+      }
+      if (Object.keys(diff).length > 0) {
+        setImages(prev => ({ ...prev, ...diff }));
+      }
       setReady(true);
     }).catch(() => {
-      // При ошибке остаёмся на дефолтах
       setReady(true);
     });
   }, [key]);
