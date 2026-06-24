@@ -158,11 +158,11 @@ export default function Step4Constructions({ state, update, next, back, totalSte
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-24 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-[#c8cad4] flex items-center justify-center p-1">
+                  <div className="w-24 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-[#c8cad4]">
                     <img
                       src={shapePhotos[c.shape as ShapeType] ?? SHAPE_PHOTOS_DEFAULT[c.shape]}
                       alt={SHAPE_META[c.shape].label}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain scale-110"
                     />
                   </div>
                   <div className="flex-1">
