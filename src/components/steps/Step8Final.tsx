@@ -87,7 +87,7 @@ export default function Step8Final({ state, back, reset, update, totalSteps }: P
               <thead>
                 <tr className="border-b border-white/8">
                   {['№','Наименование','Арт.','Кол-во','Ед.','Цена','Сумма'].map(h => (
-                    <th key={h} className="px-3 py-2 text-left text-[10px] text-white/35 uppercase tracking-wide font-semibold whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-3 py-2 text-left text-[10px] text-white uppercase tracking-wide font-semibold whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -100,8 +100,8 @@ export default function Step8Final({ state, back, reset, update, totalSteps }: P
                       <tr className="border-b border-white/8">
                         <td colSpan={7} className="px-3 py-2">
                           <div className="flex items-center gap-2">
-                            <Icon name={section.icon as Parameters<typeof Icon>[0]['name']} size={11} className="text-white/50" />
-                            <span className="text-[10px] font-semibold text-white uppercase tracking-wider">{section.label}</span>
+                            <Icon name={section.icon as Parameters<typeof Icon>[0]['name']} size={11} className="text-orange-400" />
+                            <span className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">{section.label}</span>
                           </div>
                         </td>
                       </tr>
@@ -139,7 +139,7 @@ export default function Step8Final({ state, back, reset, update, totalSteps }: P
                 })}
                 {/* Total row */}
                 <tr className="border-t border-white/8">
-                  <td colSpan={6} className="px-3 py-3 text-right text-sm font-bold text-white/60">Итого (демо-цены):</td>
+                  <td colSpan={6} className="px-3 py-3 text-right text-sm font-bold text-orange-400">Итого (демо-цены):</td>
                   <td className="px-3 py-3 text-base font-black neon-text whitespace-nowrap">
                     ~{Math.round(grandTotal).toLocaleString('ru')} ₽
                   </td>
