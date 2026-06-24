@@ -241,8 +241,16 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
                         <div className="flex-1 flex items-center gap-3 px-4 py-2.5 min-w-0">
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-semibold text-white leading-tight truncate">{item.name}</div>
-                            <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="text-[10px] text-white/70 font-mono">{item.article}</span>
+                              {displayPrice != null && displayPrice > 0 && (
+                                <span className="text-[10px] text-white/40">
+                                  {item.qty} {item.unit} × {Math.round(displayPrice).toLocaleString('ru')} ₽
+                                </span>
+                              )}
+                              {displayPrice === 0 && (
+                                <span className="text-[10px] text-green-400">бесплатно</span>
+                              )}
                             </div>
                             {item.category === 'connector_angle' && (
                               <AngleSelector
@@ -253,22 +261,18 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
                             )}
                           </div>
 
-                          {/* Кол-во + цена */}
-                          <div className="text-right flex-shrink-0 min-w-[110px]">
-                            <div className="text-sm font-bold text-white">
-                              {item.qty} <span className="text-white/35 font-normal text-xs">{item.unit}</span>
-                            </div>
-                            {displayPrice != null && (
-                              <div className="text-[11px] text-white mt-0.5">
-                                {displayPrice > 0 ? (
-                                  <>
-                                    <span className="text-white/50">{Math.round(displayPrice).toLocaleString('ru')}₽ × {item.qty} = </span>
-                                    <span className="font-bold text-white">{Math.round(total).toLocaleString('ru')} ₽</span>
-                                  </>
-                                ) : (
-                                  <span className="text-green-400 text-[10px]">бесплатно</span>
-                                )}
-                              </div>
+                          {/* Итоговая цена — крупно */}
+                          <div className="text-right flex-shrink-0 min-w-[90px]">
+                            {displayPrice != null ? (
+                              displayPrice > 0 ? (
+                                <div className="text-base font-black text-white">
+                                  {Math.round(total).toLocaleString('ru')} ₽
+                                </div>
+                              ) : (
+                                <div className="text-sm font-bold text-green-400">бесплатно</div>
+                              )
+                            ) : (
+                              <div className="text-white/20 text-sm">—</div>
                             )}
                           </div>
                         </div>
