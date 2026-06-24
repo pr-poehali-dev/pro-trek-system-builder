@@ -356,6 +356,16 @@ def handler(event: dict, context) -> dict:
         'sort': sort,
     })
 
+    # Картинки категорий из card_images
+    cur.execute("SELECT id, url FROM card_images WHERE key = 'category'")
+    cat_images = {row[0]: row[1] for row in cur.fetchall()}
+
+    # Прикрепляем image_url к каждому элементу спецификации
+    for item in spec:
+        cat = item.get('category', '')
+        if cat in cat_images:
+            item['image_url'] = cat_images[cat]
+
     # Итоги
     total_price = sum(
         (item.get('price') or 0) * item['qty']

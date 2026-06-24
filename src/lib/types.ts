@@ -83,6 +83,7 @@ export interface SpecItem {
   angle_options?: AngleOptions;
   selected_option?: string;
   sort?: number;
+  image_url?: string | null;
 }
 
 export interface AngleOptions {

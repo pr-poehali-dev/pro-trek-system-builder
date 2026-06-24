@@ -203,7 +203,7 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
 
                     return (
                       <div key={item.article} className="flex items-center gap-0 hover:bg-white/3 transition-colors border-t border-white/5">
-                        {/* Фото слева — стиль Step5SystemSelect */}
+                        {/* Фото слева */}
                         <div className="w-20 h-20 flex-shrink-0 flex items-center justify-center p-2 relative">
                           {imgSrc ? (
                             <ImageUpload
@@ -213,22 +213,14 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
                               imgClassName="w-full h-full object-cover"
                               onReplace={url => setItemImages(prev => ({ ...prev, [item.article]: url }))}
                             />
+                          ) : item.image_url ? (
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              className="w-16 h-16 rounded-2xl object-cover"
+                            />
                           ) : (
-                            <div
-                              className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center cursor-pointer hover:bg-white/8 transition-colors"
-                              onClick={() => {
-                                const input = document.createElement('input');
-                                input.type = 'file'; input.accept = 'image/*';
-                                input.onchange = e => {
-                                  const file = (e.target as HTMLInputElement).files?.[0];
-                                  if (!file) return;
-                                  const reader = new FileReader();
-                                  reader.onload = ev => setItemImages(prev => ({ ...prev, [item.article]: ev.target?.result as string }));
-                                  reader.readAsDataURL(file);
-                                };
-                                input.click();
-                              }}
-                            >
+                            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
                               <span className="text-2xl leading-none">
                                 {CATEGORY_PLACEHOLDER[item.category] ?? '📦'}
                               </span>

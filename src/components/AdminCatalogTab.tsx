@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/ui/icon';
-import { getCatalogHierarchy, addProduct, updateProductPrice, deleteProduct, uploadCatalogJson } from '@/lib/api';
+import { getCatalogHierarchy, addProduct, updateProductPrice, deleteProduct, uploadCatalogJson, getCardImages, saveCardImage } from '@/lib/api';
 
 const CATEGORY_OPTIONS = [
   { value: 'track',               label: 'Шинопровод' },
@@ -137,6 +137,9 @@ export default function AdminCatalogTab() {
   const [openSeries, setOpenSeries] = useState<Record<number, boolean>>({});
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
   const [addingTo, setAddingTo] = useState<number | null>(null);
+  const [catImages, setCatImages] = useState<Record<string, string>>({});
+  const [savingCat, setSavingCat] = useState<string | null>(null);
+  const catFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [uploading, setUploading] = useState<string | null>(null);
   const [uploadResult, setUploadResult] = useState<{ supplier: string; saved: number } | null>(null);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -148,7 +151,25 @@ export default function AdminCatalogTab() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    getCardImages('category').then(imgs => setCatImages(imgs));
+  }, []);
+
+  const handleCatImage = async (catKey: string, file: File) => {
+    setSavingCat(catKey);
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const base64 = ev.target?.result as string;
+      setCatImages(prev => ({ ...prev, [catKey]: base64 }));
+      try {
+        const url = await saveCardImage('category', catKey, base64);
+        setCatImages(prev => ({ ...prev, [catKey]: url }));
+      } catch { /* keep base64 preview */ }
+      setSavingCat(null);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleDelete = async (productId: number) => {
     await deleteProduct(productId);
@@ -262,13 +283,31 @@ export default function AdminCatalogTab() {
                       const catKey = `${series.id}-${cat.key}`;
                       return (
                         <div key={cat.key}>
-                          <button
-                            onClick={() => setOpenCats(p => ({ ...p, [catKey]: !p[catKey] }))}
-                            className="w-full flex items-center gap-2 px-6 py-2 hover:bg-white/2 transition-colors text-left">
-                            <Icon name={openCats[catKey] ? 'ChevronDown' : 'ChevronRight'} size={11} className="text-white/20" />
-                            <span className="text-[11px] font-semibold text-white/60">{cat.label}</span>
-                            <span className="text-[10px] text-white/25 ml-1">{cat.products.length} шт</span>
-                          </button>
+                          <div className="flex items-center hover:bg-white/2 transition-colors">
+                            <button
+                              onClick={() => setOpenCats(p => ({ ...p, [catKey]: !p[catKey] }))}
+                              className="flex-1 flex items-center gap-2 px-6 py-2 text-left">
+                              <Icon name={openCats[catKey] ? 'ChevronDown' : 'ChevronRight'} size={11} className="text-white/20" />
+                              {/* Миниатюра категории */}
+                              {catImages[cat.key] ? (
+                                <img src={catImages[cat.key]} alt="" className="w-6 h-6 rounded-md object-cover flex-shrink-0" />
+                              ) : (
+                                <div className="w-6 h-6 rounded-md bg-white/8 flex-shrink-0" />
+                              )}
+                              <span className="text-[11px] font-semibold text-white/60">{cat.label}</span>
+                              <span className="text-[10px] text-white/25 ml-1">{cat.products.length} шт</span>
+                            </button>
+                            {/* Кнопка загрузки картинки */}
+                            <button
+                              onClick={() => catFileRefs.current[cat.key]?.click()}
+                              className="mr-4 flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg border border-white/10 text-white/30 hover:border-[var(--neon)] hover:text-[var(--neon)] transition-all flex-shrink-0">
+                              {savingCat === cat.key ? <Icon name="Loader" size={10} className="animate-spin" /> : <Icon name="Image" size={10} />}
+                              {savingCat === cat.key ? 'Сохраняю...' : 'Фото'}
+                            </button>
+                            <input type="file" accept="image/*" className="hidden"
+                              ref={el => { catFileRefs.current[cat.key] = el; }}
+                              onChange={e => { const f = e.target.files?.[0]; if (f) handleCatImage(cat.key, f); e.target.value = ''; }} />
+                          </div>
 
                           {openCats[catKey] && (
                             <div className="px-4 pb-1">
