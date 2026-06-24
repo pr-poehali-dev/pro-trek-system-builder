@@ -85,9 +85,9 @@ export default function Step8Final({ state, back, reset, update, totalSteps }: P
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[var(--border)]">
+                <tr className="border-b border-white/8">
                   {['№','Наименование','Арт.','Кол-во','Ед.','Цена','Сумма'].map(h => (
-                    <th key={h} className="px-3 py-2 text-left text-[10px] text-[var(--text-muted)] uppercase tracking-wide font-semibold whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-3 py-2 text-left text-[10px] text-white/35 uppercase tracking-wide font-semibold whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -97,11 +97,11 @@ export default function Step8Final({ state, back, reset, update, totalSteps }: P
                   if (!items.length) return null;
                   return (
                     <React.Fragment key={section.label}>
-                      <tr className="bg-[var(--bg-secondary)]">
-                        <td colSpan={7} className="px-3 py-1.5">
+                      <tr className="border-b border-white/8">
+                        <td colSpan={7} className="px-3 py-2">
                           <div className="flex items-center gap-2">
-                            <Icon name={section.icon as Parameters<typeof Icon>[0]['name']} size={12} className="text-[var(--neon)]" />
-                            <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wide">{section.label}</span>
+                            <Icon name={section.icon as Parameters<typeof Icon>[0]['name']} size={11} className="text-white/50" />
+                            <span className="text-[10px] font-semibold text-white uppercase tracking-wider">{section.label}</span>
                           </div>
                         </td>
                       </tr>
@@ -116,19 +116,19 @@ export default function Step8Final({ state, back, reset, update, totalSteps }: P
                         }
                         const total = price * item.qty;
                         return (
-                          <tr key={`${item.article}_${rowNum}`} className="border-b border-[var(--border)] hover:bg-[var(--bg-card-hover)] transition-colors">
-                            <td className="px-3 py-2.5 text-[var(--text-muted)] text-xs">{rowNum}</td>
+                          <tr key={`${item.article}_${rowNum}`} className="border-b border-white/5 hover:bg-white/3 transition-colors">
+                            <td className="px-3 py-2.5 text-white/30 text-xs">{rowNum}</td>
                             <td className="px-3 py-2.5">
-                              <div className="text-[var(--text-primary)] text-xs leading-tight">{item.name}</div>
-                              {item.note && <div className="text-[10px] text-[var(--text-muted)] mt-0.5 italic">{item.note}</div>}
+                              <div className="text-white text-xs leading-tight">{item.name}</div>
+                              {item.note && <div className="text-[10px] text-white/40 mt-0.5 italic">{item.note}</div>}
                             </td>
-                            <td className="px-3 py-2.5 text-[var(--text-muted)] text-[10px] font-mono whitespace-nowrap">{item.article}</td>
-                            <td className="px-3 py-2.5 text-[var(--text-primary)] font-semibold text-center">{item.qty}</td>
-                            <td className="px-3 py-2.5 text-[var(--text-muted)] text-xs">{item.unit}</td>
-                            <td className="px-3 py-2.5 text-[var(--text-secondary)] text-xs whitespace-nowrap">
+                            <td className="px-3 py-2.5 text-white/60 text-[10px] font-mono whitespace-nowrap">{item.article}</td>
+                            <td className="px-3 py-2.5 text-white font-semibold text-center">{item.qty}</td>
+                            <td className="px-3 py-2.5 text-white/60 text-xs">{item.unit}</td>
+                            <td className="px-3 py-2.5 text-white/70 text-xs whitespace-nowrap">
                               {price > 0 ? `${Math.round(price).toLocaleString('ru')} ₽` : '—'}
                             </td>
-                            <td className="px-3 py-2.5 font-semibold text-xs whitespace-nowrap">
+                            <td className="px-3 py-2.5 font-bold text-xs whitespace-nowrap">
                               {total > 0 ? <span className="neon-text">{Math.round(total).toLocaleString('ru')} ₽</span> : '—'}
                             </td>
                           </tr>
@@ -138,8 +138,8 @@ export default function Step8Final({ state, back, reset, update, totalSteps }: P
                   );
                 })}
                 {/* Total row */}
-                <tr className="bg-[var(--bg-secondary)] border-t-2 border-[var(--neon)]">
-                  <td colSpan={6} className="px-3 py-3 text-right text-sm font-bold text-[var(--text-primary)]">Итого (демо-цены):</td>
+                <tr className="border-t border-white/8">
+                  <td colSpan={6} className="px-3 py-3 text-right text-sm font-bold text-white/60">Итого (демо-цены):</td>
                   <td className="px-3 py-3 text-base font-black neon-text whitespace-nowrap">
                     ~{Math.round(grandTotal).toLocaleString('ru')} ₽
                   </td>
