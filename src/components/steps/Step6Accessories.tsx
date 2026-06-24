@@ -202,19 +202,19 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
 
                     return (
                       <div key={item.article} className="flex items-center gap-0 hover:bg-white/3 transition-colors border-t border-white/5">
-                        {/* Фото слева — квадрат, как на скриншоте */}
-                        <div className="w-14 h-14 flex-shrink-0 bg-[#1a1c25] flex items-center justify-center overflow-hidden">
+                        {/* Фото слева — стиль Step5SystemSelect */}
+                        <div className="w-20 h-20 flex-shrink-0 flex items-center justify-center p-2 relative">
                           {imgSrc ? (
                             <ImageUpload
                               src={imgSrc}
                               alt={item.name}
-                              className="w-full h-full"
-                              imgClassName="w-full h-full object-contain p-1"
+                              className="w-16 h-16 rounded-2xl overflow-hidden"
+                              imgClassName="w-full h-full object-cover"
                               onReplace={url => setItemImages(prev => ({ ...prev, [item.article]: url }))}
                             />
                           ) : (
                             <div
-                              className="w-full h-full flex items-center justify-center cursor-pointer group"
+                              className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center cursor-pointer hover:bg-white/8 transition-colors"
                               onClick={() => {
                                 const input = document.createElement('input');
                                 input.type = 'file'; input.accept = 'image/*';
@@ -228,11 +228,12 @@ export default function Step6Accessories({ state, update, next, back, totalSteps
                                 input.click();
                               }}
                             >
-                              <span className="text-2xl leading-none group-hover:scale-110 transition-transform">
+                              <span className="text-2xl leading-none">
                                 {CATEGORY_PLACEHOLDER[item.category] ?? '📦'}
                               </span>
                             </div>
                           )}
+                          <div className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full" style={{ backgroundColor: currentMeta.color }} />
                         </div>
 
                         {/* Данные */}
